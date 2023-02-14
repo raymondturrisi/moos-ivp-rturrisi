@@ -51,12 +51,13 @@ bool Relayer::OnNewMail(MOOSMSG_LIST &NewMail)
     
     string key = msg.GetKey();
 
-    if(key == m_incoming_var) 
+    if(key == m_incoming_var_1)
+      m_tally_recd++;
+    if(key == m_incoming_var_2)
       m_tally_recd++;
   }
   return(true);
 }
-
 
 //---------------------------------------------------------
 // Procedure: OnConnectToServer
@@ -73,8 +74,10 @@ bool Relayer::OnConnectToServer()
 
 void Relayer::RegisterVariables()
 {
-  if(m_incoming_var != "")
-    Register(m_incoming_var, 0);
+  if(m_incoming_var_1 != "")
+    Register(m_incoming_var_1, 0);
+  if(m_incoming_var_2 != "")
+    Register(m_incoming_var_2, 0);
 }
 
 
@@ -87,7 +90,7 @@ bool Relayer::Iterate()
 
   unsigned int i, amt = (m_tally_recd - m_tally_sent);
   for(i=0; i<amt; i++) {
-    m_tally_sent++;
+    m_tally_sent+=10;
     Notify(m_outgoing_var, m_tally_sent);
   }
   
@@ -133,9 +136,10 @@ bool Relayer::OnStartUp()
     string param = tolower(biteStringX(line, '='));
     string value = line;
 
-    if(param == "incoming_var")
-      m_incoming_var = value;
-    
+    if(param == "incoming_var_1")
+      m_incoming_var_1 = value;
+    else if(param == "incoming_var_2")
+      m_incoming_var_2 = value;
     else if(param == "outgoing_var")
       m_outgoing_var = value;
   }

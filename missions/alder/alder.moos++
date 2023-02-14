@@ -6,7 +6,9 @@ Simulator  = true
 
 Community  = alder
 
-MOOSTimeWarp = 1
+//----  Next Line was commented and replaced with a command line overload ---- //
+//MOOSTimeWarp = 1    (default)
+MOOSTimeWarp = 10
 
 LatOrigin  = 43.825300 
 LongOrigin = -70.330400 
@@ -175,3 +177,4 @@ ProcessConfig = pNodeReporter
   CommsTick	= 2
   VESSEL_TYPE = KAYAK
 }
+

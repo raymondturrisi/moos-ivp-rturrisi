@@ -1,0 +1,11 @@
+//------------------------------------------------
+// pOdometry config block
+
+ProcessConfig = pOdometryUUV
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   depth_thresh = 0
+}
+

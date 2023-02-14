@@ -1,0 +1,49 @@
+ServerHost = localhost
+ServerPort = 9000
+Community  = alpha
+
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 200
+
+  Run = MOOSDB	 @ NewConsole = false
+  Run = uXMS     @ NewConsole = true
+  Run = pXRelay	 @ NewConsole = false ~ pXRelay_PEARS
+  Run = pXRelayTest	 @ NewConsole = false ~ pXRelay_APPLES_BANANAS
+}
+
+ProcessConfig = uXMS
+{
+  AppTick = 10
+  CommsTick = 10
+  var = APPLES, PEARS, BANANAS
+}
+
+//------------------------------------------
+// pXRelay_APPLES config block
+
+ProcessConfig = pXRelay_APPLES_BANANAS
+{
+  AppTick	= 10
+  CommsTick	= 10
+
+  incoming_var_1  = APPLES
+  incoming_var_2 = BANANAS
+  outgoing_var  = PEARS
+}
+
+//------------------------------------------
+// pXRelay_PEARS config block
+
+ProcessConfig = pXRelay_PEARS
+{
+  AppTick	= 10
+  CommsTick	= 10
+
+  incoming_var  = PEARS
+  outgoing_var  = APPLES
+}
+
+

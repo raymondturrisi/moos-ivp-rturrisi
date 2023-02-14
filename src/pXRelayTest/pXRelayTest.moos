@@ -9,6 +9,7 @@ ProcessConfig = pXRelayTest
    CommsTick = 4
  
    OUTGOING_VAR = APPLES
-   INCOMING_VAR = PEARS
+   INCOMING_VAR_1 = PEARS
+   INCOMING_VAR_2 = BANANAS
 }
 

@@ -1,0 +1,76 @@
+ServerHost = localhost
+ServerPort = 9000
+Community  = alpha
+
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 200
+
+  Run = MOOSDB	 @ NewConsole = false
+  Run = uXMS     @ NewConsole = true 
+  Run = uTimerScript @ NewConsole = false
+  Run = pXRelay	 @ NewConsole = false ~ pXRelay_PEARS
+  Run = pXRelay	 @ NewConsole = false ~ pXRelay_APPLES
+}
+
+//------------------------------------------
+
+ProcessConfig = uXMS
+{
+  AppTick = 10
+  CommsTick = 10
+  var = APPLES, PEARS, COUNTER_A
+}
+
+ProcessConfig = uTimerScript
+{
+  AppTick = 10
+  CommsTick = 10
+  paused = false
+  
+  condition = APPLES = $(PEARS)
+
+  event = var=APPLES, val=1, time=5
+   
+  event  = var=COUNTER_A, val=1,  time=0.5 
+  event  = var=COUNTER_A, val=2,  time=1.0
+  event  = var=COUNTER_A, val=3,  time=1.5 
+  event  = var=COUNTER_A, val=4,  time=2.0 
+  event  = var=COUNTER_A, val=5,  time=2.5 
+  event  = var=COUNTER_A, val=6,  time=3.0 
+  event  = var=COUNTER_A, val=7,  time=3.5 
+  event  = var=COUNTER_A, val=8,  time=4.0 
+  event  = var=COUNTER_A, val=9,  time=4.5 
+  event  = var=COUNTER_A, val=10, time=5 
+  
+  reset_max  = nolimit
+  reset_time = all-posted
+  resetmax = nolimit
+  reset_time = all-posted
+}
+// pXRelay_APPLES config block
+
+ProcessConfig = pXRelay_APPLES
+{
+  AppTick	= 5
+  CommsTick	= 5
+
+  incoming_var  = APPLES
+  outgoing_var  = PEARS
+}
+
+//------------------------------------------
+// pXRelay_PEARS config block
+
+ProcessConfig = pXRelay_PEARS
+{
+  AppTick	= 5
+  CommsTick	= 5
+
+  incoming_var  = PEARS
+  outgoing_var  = APPLES
+}
+
+
