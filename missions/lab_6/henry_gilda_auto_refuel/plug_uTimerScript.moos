@@ -1,0 +1,32 @@
+//------------------------------------------------------
+// uTimerScript Configuration Block  (Created from plugin)
+
+
+//This process holds the vehicle in a station keeping mode while it is refueling
+ProcessConfig = uTimerRefuelTime                                    
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+  condition = REFUEL == true
+  condition = MODE==STATION-KEEPING
+
+  event  = var=MODE, val=LOITERING,  time=60.0 
+  event  = var=REFUEL, val=false,  time=60.0 
+
+  reset_max  = nolimit
+  reset_time = all-posted
+  perpetual = true
+}            
+
+
+//This process times how long the vehicle has been active (not idling or station keeping)
+ProcessConfig = uTimerFuelMgr                                    
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+  condition = (STATION_KEEP==false) and (REFUEL == false)
+  event  = var=REFUEL, val=true,  time=300
+  reset_max  = nolimit
+  reset_time = all-posted
+  perpetual = true
+}     

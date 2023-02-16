@@ -1,6 +1,6 @@
 //-------------------------------------------------
 // NAME: M. Benjamin, MIT CSAIL
-// FILE: alpha.moos
+// FILE: shoreside.moos
 //-------------------------------------------------
 
 ServerHost   = localhost
@@ -35,12 +35,16 @@ ProcessConfig = pShare
   AppTick    = 4
   CommsTick  = 4
 
-  input     = route=localhost:9200
+  input     = route=localhost:9201
   
-  output    = src_name=DEPLOY, route=localhost:9201
-  output    = src_name=MOOS_MANUAL_OVERRIDE, route=localhost:9201
-  output    = src_name=RETURN, route=localhost:9201
-  output    = src_name=APPCAST_REQ, route=localhost:9201
+  output    = src_name=DEPLOY_ALPHA, dest_name=DEPLOY, route=localhost:9202
+  output    = src_name=DEPLOY_BRAVO, dest_name=DEPLOY, route=localhost:9203
+  output    = src_name=MOOS_MANUAL_OVERRIDE, route=localhost:9202
+  output    = src_name=MOOS_MANUAL_OVERRIDE, route=localhost:9203
+  output    = src_name=RETURN_ALPHA, dest_name=RETURN, route=localhost:9202
+  output    = src_name=RETURN_BRAVO, dest_name=RETURN, route=localhost:9203
+  output    = src_name=APPCAST_REQ, route=localhost:9202
+  output    = src_name=APPCAST_REQ, route=localhost:9203
 }
 
 //------------------------------------------
@@ -98,14 +102,20 @@ ProcessConfig = pMarineViewer
   scope  = MVIEWER_LCLICK
   scope  = MVIEWER_RCLICK
 
-  button_one = DEPLOY # DEPLOY=true
+  button_one = DEPLOY # DEPLOY_ALPHA=true
+  button_one = DEPLOY # DEPLOY_BRAVO=true
   button_one = MOOS_MANUAL_OVERRIDE=false # RETURN=false
-  button_two = RETURN # RETURN=true
+  button_two = RETURN # RETURN_ALPHA=true
+  button_two = RETURN # RETURN_BRAVO=true
   button_three = SLOWER # WPT_UPDATE=speed=1.5
   button_four = FASTER # WPT_UPDATE=speed=3.5
 
   action  = MENU_KEY=deploy # DEPLOY = true # RETURN = false
   action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE=false
   action  = RETURN=true
+  action  = DEPLOY_ALPHA=true
+  action  = DEPLOY_BRAVO=true
+  action  = RETURN_ALPHA=true
+  action  = RETURN_BRAVO=true
   action  = UPDATES_RETURN=speed=1.4
 }

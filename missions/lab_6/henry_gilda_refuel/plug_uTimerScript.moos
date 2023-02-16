@@ -1,0 +1,17 @@
+//------------------------------------------------------
+// uTimerScript Configuration Block  (Created from plugin)
+
+
+ProcessConfig = uTimerScript                                    
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+  condition = REFUELING_SK == true
+  event  = var=MODE, val=LOITERING,  time=60.0 
+  event  = var=REFUELING_SK, val=false,  time=60.0 
+  event  = var=REFUEL, val=false,  time=60.0 
+
+  reset_max  = nolimit
+  reset_time = all-posted
+  perpetual = true
+}                                              
