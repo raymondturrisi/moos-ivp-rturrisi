@@ -8,10 +8,10 @@ Behavior = BHV_Loiter
  {
    // General Behavior Parameters
    // ---------------------------
-   name         = Loiter               // example
+   name         = Loiter               
    pwt          = 100                   // default
-   condition    = DEPLOY==true       // example
-   updates      = LOITER_UPDATES        // example
+   condition    = DEPLOY==true       
+   updates      = LOITER_UPDATES        
 
    // Parameters specific to this behavior
    // ------------------------------------
@@ -23,7 +23,7 @@ Behavior = BHV_Loiter
                speed = 2.5                // default
        spiral_factor = -2               // default
 
-             polygon = radial:: x=100,y=-75,radius=30,pts=8  // example
+             polygon = radial:: x=100,y=-75,radius=30,pts=8  
             duration = 150
         visual_hints = vertex_size  = 1             // default
         visual_hints = edge_size    = 1             // default
@@ -32,7 +32,7 @@ Behavior = BHV_Loiter
         visual_hints = nextpt_color = yellow        // default
         visual_hints = nextpt_lcolor = aqua         // default
         visual_hints = nextpt_vertex_size = 5       // default
-        visual_hints = label        = zone3         // example
+        visual_hints = label        = zone3         
  }
 
 //----------------------------------------------

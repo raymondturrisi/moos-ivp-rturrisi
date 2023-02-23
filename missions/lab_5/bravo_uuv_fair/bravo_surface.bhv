@@ -12,12 +12,12 @@ Behavior = BHV_Timer
    // General Behavior Parameters
    // ---------------------------
    name         = timer_submerged            // default
-   duration     = 200                  // example
+   duration     = 200                  
    duration_idle_decay = false
    perpetual    = true
    condition    = SURFACED=false
-   endflag      = SURFACED=true          // example
-   updates      = TIMER_UPDATES        // example
+   endflag      = SURFACED=true          
+   updates      = TIMER_UPDATES        
 
    // Parameters specific to this behavior
    // ------------------------------------
@@ -30,12 +30,12 @@ Behavior = BHV_Timer
    // General Behavior Parameters
    // ---------------------------
    name         = timer_surfaced            // default
-   duration     = 60                  // example
+   duration     = 60                  
    duration_idle_decay = false
    perpetual    = true
    condition    = SURFACED=true
-   endflag      = SURFACED=false          // example
-   updates      = TIMER_UPDATES        // example
+   endflag      = SURFACED=false          
+   updates      = TIMER_UPDATES        
 
    // Parameters specific to this behavior
    // ------------------------------------
@@ -47,17 +47,17 @@ Behavior = BHV_Timer
  {
    // General Behavior Parameters
    // ---------------------------
-   name         = Surfacing_bhv   // example
+   name         = Surfacing_bhv   
    pwt          = 100                // default
    condition    = SURFACED=true
-   updates      = CONST_DEP_UPDATES  // example
+   updates      = CONST_DEP_UPDATES  
    perpetual    = true
 
    // Parameters specific to this behavior
    // ------------------------------------
             basewidth = 100          // default
                 depth = 0            // default
-   depth_mismatch_var = DEPTH_DIFF   // example
+   depth_mismatch_var = DEPTH_DIFF   
    //For as long as we are surfaced, we maintain this depth
              duration=no-time-limit // default
             peakwidth = 3            // default
@@ -70,12 +70,12 @@ Behavior = BHV_Loiter
  {
    // General Behavior Parameters
    // ---------------------------
-   name         = Loiter_West               // example
+   name         = Loiter_West               
    pwt          = 100                   // default
    condition    = DEPLOY=true
-   condition    = LOITER_REGION = west       // example
+   condition    = LOITER_REGION = west       
    condition    = SURFACED=false
-   updates      = LOITER_UPDATES        // example
+   updates      = LOITER_UPDATES        
    perpetual    = true
 
    // Parameters specific to this behavior
@@ -88,7 +88,7 @@ Behavior = BHV_Loiter
                speed = 2.5                // default
        spiral_factor = -2               // default
 
-             polygon = radial:: x=100,y=-75,radius=30,pts=8  // example
+             polygon = radial:: x=100,y=-75,radius=30,pts=8  
             duration = 150
             duration_idle_decay = false
             endflag = LOITER_REGION = east
@@ -99,25 +99,25 @@ Behavior = BHV_Loiter
         visual_hints = nextpt_color = yellow        // default
         visual_hints = nextpt_lcolor = aqua         // default
         visual_hints = nextpt_vertex_size = 5       // default
-        visual_hints = label        = zone3         // example
+        visual_hints = label        = zone3         
  }
 
  Behavior = BHV_ConstantDepth
  {
    // General Behavior Parameters
    // ---------------------------
-   name         = Const_Dep_West   // example
+   name         = Const_Dep_West   
    pwt          = 100                // default
-   condition    = LOITER_REGION=west    // example
+   condition    = LOITER_REGION=west    
    condition    = SURFACED=false
-   updates      = CONST_DEP_UPDATES  // example
+   updates      = CONST_DEP_UPDATES  
    perpetual    = true
 
    // Parameters specific to this behavior
    // ------------------------------------
             basewidth = 100          // default
                 depth = 30            // default
-   depth_mismatch_var = DEPTH_DIFF   // example
+   depth_mismatch_var = DEPTH_DIFF   
              duration=no-time-limit // default
             peakwidth = 3            // default
           summitdelta = 50           // default
@@ -129,13 +129,13 @@ Behavior = BHV_Loiter
  {
    // General Behavior Parameters
    // ---------------------------
-   name         = Loiter_East               // example
+   name         = Loiter_East               
    pwt          = 100                   // default
    condition    = DEPLOY=true
-   condition    = LOITER_REGION=east       // example
+   condition    = LOITER_REGION=east       
    condition    = SURFACED=false
    
-   updates      = LOITER_UPDATES        // example
+   updates      = LOITER_UPDATES        
    perpetual    = true
    
 
@@ -149,7 +149,7 @@ Behavior = BHV_Loiter
                speed = 2.5                // default
        spiral_factor = -2               // default
 
-             polygon = radial:: x=160,y=-50,radius=20,pts=8  // example
+             polygon = radial:: x=160,y=-50,radius=20,pts=8  
             duration = 150
             duration_idle_decay = false
             endflag = LOITER_REGION = west
@@ -160,25 +160,25 @@ Behavior = BHV_Loiter
         visual_hints = nextpt_color = yellow        // default
         visual_hints = nextpt_lcolor = aqua         // default
         visual_hints = nextpt_vertex_size = 5       // default
-        visual_hints = label        = zone3         // example
+        visual_hints = label        = zone3         
  }
 
  Behavior = BHV_ConstantDepth
  {
    // General Behavior Parameters
    // ---------------------------
-   name         = Const_Dep_East   // example
+   name         = Const_Dep_East   
    pwt          = 100                // default
-   condition    = LOITER_REGION=east    // example
+   condition    = LOITER_REGION=east    
    condition    = SURFACED=false
-   updates      = CONST_DEP_UPDATES  // example
+   updates      = CONST_DEP_UPDATES  
    perpetual    = true
 
    // Parameters specific to this behavior
    // ------------------------------------
             basewidth = 100          // default
                 depth = 10            // default
-   depth_mismatch_var = DEPTH_DIFF   // example
+   depth_mismatch_var = DEPTH_DIFF   
              duration=no-time-limit            // default
             peakwidth = 3            // default
           summitdelta = 50           // default
