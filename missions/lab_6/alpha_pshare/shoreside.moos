@@ -1,6 +1,6 @@
 //-------------------------------------------------
 // NAME: M. Benjamin, MIT CSAIL
-// FILE: alpha.moos
+// FILE: shoreside.moos
 //-------------------------------------------------
 
 ServerHost   = localhost

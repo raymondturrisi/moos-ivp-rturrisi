@@ -1,8 +1,8 @@
 /****************************************************************/
-/*   NAME: Raymond Turrisi                                             */
+/*   NAME: Raymond Turrisi                                      */
 /*   ORGN: MIT, Cambridge MA                                    */
-/*   FILE: Odometry_Info.h                                      */
-/*   DATE: Dececmber 29th, 1963                                 */
+/*   FILE: OdometryUUV_Info.h                                   */
+/*   CIRCA: Spring 2023                                         */
 /****************************************************************/
 
 #ifndef OdometryUUV_INFO_HEADER

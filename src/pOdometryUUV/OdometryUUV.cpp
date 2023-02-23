@@ -1,8 +1,8 @@
 /************************************************************/
-/*    NAME: Raymond Turrisi                                              */
+/*    NAME: Raymond Turrisi                                 */
 /*    ORGN: MIT, Cambridge MA                               */
-/*    FILE: Odometry.cpp                                        */
-/*    DATE: December 29th, 1963                             */
+/*    FILE: OdometryUUV.cpp                                 */
+/*    CIRCA: Spring 2023                                    */
 /************************************************************/
 
 #include <iterator>
@@ -56,7 +56,9 @@ bool OdometryUUV::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mdbl  = msg.IsDouble();
     bool   mstr  = msg.IsString();
 #endif
-
+    /*
+      Accrues the total distance traveled by the vehicle between app ticks while reading mail
+    */
      if(key == "NAV_X") 
      {
       if(m_current_depth >= m_depth_threshold) {
@@ -114,7 +116,7 @@ bool OdometryUUV::OnConnectToServer()
 bool OdometryUUV::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  // Do your thing here!
+  // If we've received at least one reading, update the total distance and reset the temporary variables
   if (m_first_reading) {
     m_total_distance += sqrt(pow(m_delta_x, 2.0)+pow(m_delta_y, 2.0));
     Notify("ODOMETRY_DIST", m_total_distance);

@@ -1,6 +1,12 @@
+// author: Raymond Turrisi
+// fname: xrelay_pears.moos
+// circa: Spring 2023
+//------------------------------------------
+
 ServerHost = localhost
 ServerPort = 9001
 Community  = screaming_pears 
+
 //Receives apples and screams pears
 //------------------------------------------
 // Antler configuration  block

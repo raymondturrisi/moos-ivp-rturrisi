@@ -1,7 +1,8 @@
 // author: Raymond Turrisi
-// fname: meta_vehicle.moos
+// fname: meta_vehicle.bhv
 // circa: Spring 2023
 //------------------------------------------
+
 
 //-----------------------------------------------
 // Helm Behavior file 
@@ -10,6 +11,7 @@ initialize   DEPLOY  = true
 initialize   RETURN  = false
 initialize   STATION_KEEP = false
 initialize   LOITER  = true
+initialize   REFUEL  = false
 
 set MODE = ACTIVE {
   DEPLOY = true
@@ -28,8 +30,8 @@ set MODE = RETURNING {
 set MODE = LOITERING {
   MODE = ACTIVE
   LOITER = true
-} 
-
+  REFUEL = false
+}
 
 //----------------------------------------------
 Behavior = BHV_Loiter
@@ -43,7 +45,7 @@ Behavior = BHV_Loiter
      clockwise = false
         radius = 8.0
      nm_radius = 15.0
-       polygon = radial::$(LOITER_POS), radius=20, pts=8, snap=1, label=$(VNAME)_LOITER
+       polygon = radial::x=0,y=-75, radius=20, pts=8, snap=1, label=gilda_LOITER
 
   visual_hints = nextpt_color=white, nextpt_lcolor=khaki
   visual_hints = edge_color=orange, vertex_color=white
@@ -63,7 +65,26 @@ Behavior = BHV_Waypoint
       speed = 1.3
      radius = 3.0
   nm_radius = 15.0
-     points = $(START_POS)
+     points = 0,0
+       lead = 8
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = refuel-rendevous
+  pwt       = 100
+  condition = REFUEL==true
+  condition = DEPLOY==true 
+  condition = RETURN==false 
+
+  endflag   = REFUELING_SK = true
+  perpetual = true
+
+      speed = 1.3
+     radius = 3.0
+  nm_radius = 15.0
+     points = 0,0
        lead = 8
 }
 
@@ -72,7 +93,7 @@ Behavior = BHV_StationKeep
 {
   name      = station-keep
   pwt       = 100
-  condition = MODE==STATION-KEEPING
+  condition = (MODE==STATION-KEEPING) or (REFUELING_SK==true)
 
    center_activate = true
       inner_radius = 5

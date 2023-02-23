@@ -1,4 +1,7 @@
-// Level 2 Configuration file: M. Benjamin
+// author: Raymond Turrisi
+// fname: alder.moos
+// circa: Spring 2023
+//
 
 ServerHost = localhost
 ServerPort = 9000
@@ -78,7 +81,6 @@ ProcessConfig = pHelmIvP
   Domain     = speed:0:4:21
 
   IVP_BEHAVIOR_DIR = ../../lib
-  //IVP_BEHAVIOR_DIR = /Users/mikerb/Research/moos-ivp-extend/trunk/lib
 
   ok_skew = any
   start_in_drive = false

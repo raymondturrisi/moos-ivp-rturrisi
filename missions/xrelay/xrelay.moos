@@ -1,4 +1,7 @@
-// MOOS file
+// author: Raymond Turrisi
+// fname: xrelay.moos
+// circa: Spring 2023
+//
 
 ServerHost = localhost
 ServerPort = 9000

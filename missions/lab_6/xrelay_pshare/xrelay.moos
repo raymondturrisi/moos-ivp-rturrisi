@@ -1,3 +1,8 @@
+// author: Raymond Turrisi
+// fname: xrelay.moos
+// circa: Spring 2023
+//------------------------------------------
+
 ServerHost = localhost
 ServerPort = 9000
 Community  = apples
@@ -22,7 +27,7 @@ ProcessConfig = ANTLER
   Run = pLogger	 @ NewConsole = false
   Run = pXRelay	 @ NewConsole = true ~ pXRelay_PEARS
   Run = pXRelay	 @ NewConsole = true ~ pXRelay_APPLES
-  Run = uXMS	 @ NewConsole = true
+  Run = uXMS	   @ NewConsole = true
 }
 
 //------------------------------------------

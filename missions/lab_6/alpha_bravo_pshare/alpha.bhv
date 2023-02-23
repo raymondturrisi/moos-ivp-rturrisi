@@ -1,4 +1,7 @@
-//--------    FILE: alpha.bhv   -------------
+// author: Raymond Turrisi
+// fname: alpha.bhv
+// circa: Spring 2023
+//------------------------------------------
 
 initialize   DEPLOY = false
 initialize   RETURN = false

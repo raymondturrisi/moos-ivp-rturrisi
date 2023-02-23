@@ -1,5 +1,5 @@
 #--------------------------------------------------------
-# The CMakeLists.txt for:                       pOdometryUUV
+# The CMakeLists.txt for:                    pOdometryUUV
 # Author(s):                              Raymond Turrisi
 #--------------------------------------------------------
 
