@@ -1,0 +1,10 @@
+//------------------------------------------------
+// pPointAssign config block
+
+ProcessConfig = pPointAssign
+{
+   AppTick   = 4
+   CommsTick = 4
+   Vehicles = [HENRY, GILDA]
+}
+

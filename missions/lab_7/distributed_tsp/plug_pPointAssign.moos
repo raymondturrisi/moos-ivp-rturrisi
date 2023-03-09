@@ -1,0 +1,11 @@
+//--------------------------------------------------
+// pPointAssign Block
+
+ProcessConfig = pPointAssign
+{
+   AppTick   = 10
+   CommsTick = 10
+   Colors = [yellow, green]
+   Vehicles = [HENRY, GILDA]
+   assign_by_region = true
+}

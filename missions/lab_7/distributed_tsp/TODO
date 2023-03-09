@@ -1,0 +1,18 @@
+
+Section 3
+
+[x] Create a uTimerScript which generates 100 random points
+[x] Create pPointAssign which distributes the points to N vehicles
+[x] Configure pShare to have them be received on each of the vehicles
+[x] Make it so pPointAssign unpauses the uTimerScript when it is ready to cache points
+[x] Make it so that pPointAssign only sends points when the vehicle is connected to the DB
+[x] Make it so points are rendered different colors based on which vehicle receives them
+
+Section 4
+
+[x] Make pGenPath, which runs on the vehicle, and generates a list of waypoints to be consumed by the waypoint behavior
+[x] Have it return the 'shortest' path
+[x] Maximum vehicle speed of 1.2 meters/sec
+[ ] The vehicle will need to refuel after 10 minutes/600 seconds
+[x] The vehicle will need to refuel for 60 seconds
+

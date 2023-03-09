@@ -1,0 +1,121 @@
+// author: Raymond Turrisi
+// fname: meta_vehicle.bhv
+// circa: Spring 2023
+//------------------------------------------
+
+
+//-----------------------------------------------
+// Helm Behavior file 
+
+initialize   DEPLOY  = false
+initialize   RETURN  = false
+
+initialize   STATION_KEEP = false
+initialize   TRACK_WPTS  = true
+
+initialize   REFUEL  = false
+initialize   REFUEL_SK  = false
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATION-KEEPING {
+  MODE = ACTIVE
+  STATION_KEEP = true
+}                       
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} 
+
+set MODE = TRACKING { 
+  MODE = ACTIVE
+  TRACK_WPTS = true
+}
+
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = waypt_return
+  pwt       = 100
+  condition = MODE==RETURNING
+  endflag   = STATION_KEEP = true
+  perpetual = true
+
+      speed = 1.3
+     radius = 3.0
+  nm_radius = 15.0
+     points = $(START_POS)
+       lead = 8
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{
+  name      = refuel-rendevous
+  pwt       = 100
+  condition = REFUEL==true
+  condition = DEPLOY==true 
+  condition = RETURN==false 
+
+  endflag   = REFUEL_SK = true
+  perpetual = true
+
+      speed = 1.3
+     radius = 3.0
+  nm_radius = 15.0
+     points = $(START_POS)
+       lead = 8
+}
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name      = station-keep
+  pwt       = 100
+  condition = (REFUEL_SK==true)
+
+   center_activate = true
+      inner_radius = 5
+      outer_radius = 10 
+       outer_speed = 1.0
+     transit_speed = 1.3
+        swing_time = 7
+      visual_hints = vertex_size=0, edge_color=gray50
+}
+
+Behavior = BHV_Waypoint
+{
+  // General Behavior Parameters
+   // ---------------------------
+   name         = transit               // example
+   pwt          = 100                   // default
+   condition    = TRACK_WPTS == true
+
+   updates      = UPDATES_WPTS       // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+      capture_radius = 3                       // default
+        capture_line = false                   // default
+//                lead = -1                      // default
+//         lead_damper = -1                      // default
+       lead_to_start = false                   // default
+               order = normal                  // default 
+         post_suffix = %(VNAME)                   // example
+              repeat = 0                       // default
+         slip_radius = 15                      // default
+               speed = 1.2                     // default is zero
+
+        visual_hints = vertex_size  = 3             // default
+        visual_hints = edge_size    = 1             // default
+        visual_hints = vertex_color = dodger_blue   // default
+        visual_hints = edge_color   = green         // default
+        visual_hints = nextpt_color = yellow        // default
+        visual_hints = nextpt_lcolor = aqua         // default
+        visual_hints = nextpt_vertex_size = 5       // default
+  perpetual = true
+}

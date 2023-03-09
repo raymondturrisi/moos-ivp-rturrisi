@@ -1,0 +1,48 @@
+// author: Raymond Turrisi
+// fname: plug_uTimerScript.moos
+// circa: Spring 2023
+//------------------------------------------
+
+//------------------------------------------------------
+// uTimerScript Configuration Block  (Created from plugin)
+
+
+ProcessConfig = uTimerPointGen                                    
+{      
+  paused = true                                                                                                     
+  pause_var = UTS_HOLD_POINTS
+  rand_var = varname=RND_X, min=$(XMIN), max=$(XMAX), key=at_post, snap=1
+  rand_var = varname=RND_Y, min=$(YMIN), max=$(YMAX), key=at_post, snap=1
+
+  event = var=VISIT_POINT, val="firstpoint", time=0
+  event = var=VISIT_POINT, val="x=$(RND_X), y=$(RND_Y), unique_id=$(TCOUNT)", time=1:5, amt=100 
+  event = var=VISIT_POINT, val="lastpoint", time=6
+}                                              
+
+//This process holds the vehicle in a station keeping mode while it is refueling
+ProcessConfig = uTimerRefuelTime                                    
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+  condition = (REFUEL_SK == true)
+
+  event  = var=TRACK_WPTS, val=true,  time=60.0 
+  event  = var=REFUEL, val=false,  time=60.0 
+  event  = var=REFUEL_SK, val=false,  time=60.0 
+
+  reset_max  = nolimit
+  reset_time = all-posted
+}            
+
+
+//This process times how long the vehicle has been active (not idling or station keeping)
+ProcessConfig = uTimerFuelMgr                                    
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+  condition = (STATION_KEEP==false) and (REFUEL == false)
+  event  = var=REFUEL, val=true,  time=300
+  event  = var=TRACK_WPTS, val=false,  time=300
+  reset_max  = nolimit
+  reset_time = all-posted
+}     
