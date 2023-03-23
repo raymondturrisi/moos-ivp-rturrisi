@@ -1,8 +1,8 @@
 /************************************************************/
-/*    NAME:                                               */
+/*    NAME: Raymond Turrisi                                 */
 /*    ORGN: MIT, Cambridge MA                               */
-/*    FILE: GenPath.cpp                                        */
-/*    DATE: March 9th, 2023                             */
+/*    FILE: GenPath.cpp                                     */
+/*    DATE: March 9th, 2023                                 */
 /************************************************************/
 
 #include <iterator>
@@ -57,6 +57,8 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
     bool   mstr  = msg.IsString();
 #endif
 
+
+    //If we receive a new visit point, reset the timer from the last update, and collect the XYPoint in the points buffer
     if (key == "VISIT_POINT")
     {
       m_ticks_since_update = 0;
@@ -87,6 +89,7 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
         m_ids.insert(unique_id);
       }
     }
+    //If the waypoint behavior claims to have captured a waypoint (by either direct capture or slip condition), we save this latest capture point
     else if (key == "HITPTS")
     {
       string sval = msg.GetString();
@@ -106,20 +109,21 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
           y = stod(value);
         }
       }
-      fptr = fopen((m_vname + std::string(buffer)).c_str(), "a");
+      //Here we also reset our condition for if it is a successful capture by the genpath criteria, to evaluate later in the iterate loop
       m_latest_captured_point = XYPoint(x, y, "CAPTURED");
-      m_captured = false;
-      ////fprintf(fptr, "Captured point %s\n", m_latest_captured_point.get_spec().c_str());
-      fclose(fptr);
+      m_successful_capture = false;
     }
     else if (key == "DELIVERED")
     {
+      //If all pPointAssign says that all points have been received, then we update our state manager to acknowledge this
       string sval = msg.GetString();
       if (sval == "true")
       {
         m_all_points_received = true;
       }
     }
+
+    //If the waypoint behavior says that it completes a tour of the first round of points, we update our state manager
     else if (key == "TOUR_COMPLETE")
     {
       string sval = msg.GetString();
@@ -128,6 +132,8 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
         m_tour_complete = true;
       }
     }
+
+    //Read the NAV messages and track the vehicles current state from uSimMarine
     else if (key == "NAV_X")
     {
       m_current_x = msg.GetDouble();
@@ -138,6 +144,8 @@ bool GenPath::OnNewMail(MOOSMSG_LIST &NewMail)
       m_current_y = msg.GetDouble();
       m_captured_y = true;
     }
+
+    //No clue!
     else if (key != "APPCAST_REQ") // handled by AppCastingMOOSApp
       reportRunWarning("Unhandled Mail: " + key);
   }
@@ -157,6 +165,11 @@ bool GenPath::OnConnectToServer()
 // Procedure: Iterate()
 //            happens AppTick times per second
 
+
+/**
+ * @brief Releases a pulse surrounding the vehicle
+ * 
+ */
 void GenPath::post_pulse()
 {
   XYRangePulse my_pulse(m_current_x, m_current_y);
@@ -171,6 +184,13 @@ void GenPath::post_pulse()
   m_Comms.Notify("VIEW_RANGE_PULSE", str);
 }
 
+
+/**
+ * @brief Draws a beam from the vehicle to a point its either captured or missed
+ * 
+ * @param captured 
+ * @param target Target to trace the beam to
+ */
 void GenPath::post_beam(bool captured, XYPoint target)
 {
   XYCommsPulse my_pulse(m_current_x, m_current_y, target.x(), target.y());
@@ -188,9 +208,18 @@ void GenPath::post_beam(bool captured, XYPoint target)
   m_Comms.Notify("VIEW_COMMS_PULSE", str);
 }
 
+/**
+ * @brief Sorts the points for the traveling salesman problem - returns a list of consecutively 
+ * greedy close points to one another using the euclidean distance, i.e. if init is 7 and points are 9 10 4 2, it'll return
+ * 7 9 10 4 2
+ * 
+ * @param init_point 
+ * @return std::vector<XYPoint> Collection of XYPoints
+ */
+
 std::vector<XYPoint> GenPath::sort_points(XYPoint init_point)
 {
-  // Sort points
+  // Could be more efficient, but no problem on my machine! 
 
   // Instantiate a sequence to be returned
   std::vector<XYPoint> seq;
@@ -234,7 +263,7 @@ std::vector<XYPoint> GenPath::sort_points(XYPoint init_point)
     // We found this next minimum
     seq.push_back(XYPoint(m_points[min_idx]));
 
-    // Remove this from the source sequence
+    // Remove this from the source sequence - this what I would suspect to be inefficient, and we could probably swap indices, but am not
     m_points.erase(m_points.begin() + min_idx);
   }
   return seq;
@@ -242,18 +271,21 @@ std::vector<XYPoint> GenPath::sort_points(XYPoint init_point)
 
 bool GenPath::Iterate()
 {
-
   /*
-    This can be reimplemented to be more consistent with its actual function - all it ends up doing
-    is checking to see if the latest point the waypoint behavior says its captured is within the criteria
-    and if it is not, then it saves it. Currently, it considers the length of the current list, but it is an 
-    artifact from debugging - and c'est la vie
+    On an iterate, we cycle between three states
+      Active - Starts on active, and if sufficient conditions for posting the sorted sequence are met, we post this update, transition to monitor mode
+
+      Monitor - while in monitor mode, when the waypoint behavior posts an update claiming it has captured a point by either capture radii or slip radii, we compare the point to 
+        GenPaths visit point conditions, and determine whether or not it should be put back into the revisit queue
+
+      Idle - If all points have been visited by our criteria, then we simply go to an idle mode
   */
   AppCastingMOOSApp::Iterate();
 
-  fptr = fopen((m_vname + std::string(buffer)).c_str(), "a");
   XYPoint current_point(m_current_x, m_current_y);
-  //fprintf(fptr, "Num elems %lu\n", m_points.size());
+
+
+  //ACTIVE MODE
   if (m_state == m_active_mode && m_points.size() != 0 && (m_ticks_since_update >= 50) && m_all_points_received && (m_captured_x && m_captured_y))
   {
     m_missed_points = 0;
@@ -284,9 +316,9 @@ bool GenPath::Iterate()
     Notify("UPDATES_WPTS", update_str);
 
     m_state = m_monitor_mode;
-    //fprintf(fptr, "Mode switching %d\n", m_state);
     m_points.clear();
   }
+  //MONITOR MODE
   else if (m_state == m_monitor_mode && (m_captured_x && m_captured_y))
   {
     // Capture condition
@@ -294,10 +326,9 @@ bool GenPath::Iterate()
     // Get the distance between the current point and the latest captured point
     m_latest_capture_distance = rel_dist(current_point, m_latest_captured_point);
 
-    //fprintf(fptr, "Points Current %s -> Captured %s: %f\n", current_point.get_spec().c_str(), m_latest_captured_point.get_spec().c_str(), m_latest_capture_distance);
 
     // If the capture distance is greater than the visit radius, and it is a new point, then push it to the queue
-    if (!m_captured && m_latest_capture_distance >= m_visit_radius && rel_dist(m_last_missed_point, m_latest_captured_point) > 1)
+    if (!m_successful_capture && m_latest_capture_distance >= m_visit_radius && rel_dist(m_last_missed_point, m_latest_captured_point) > 1)
     {
       m_points_to_revisit.push_back(m_latest_captured_point);
       m_last_missed_point = XYPoint(m_latest_captured_point);
@@ -305,15 +336,14 @@ bool GenPath::Iterate()
       post_beam(false, m_latest_captured_point);
 
       m_missed_points++;
-      //fprintf(fptr, "Point Missed %s -> %s: %f, last missed point %s - %d\n", current_point.get_spec().c_str(), m_latest_captured_point.get_spec().c_str(), m_latest_capture_distance, m_last_missed_point.get_spec().c_str(), m_last_missed_point.get_spec().compare(m_latest_captured_point.get_spec()));
     }
     else
     {
-      //fprintf(fptr, "Point Captured %s -> %s: %f, last missed point %s - %d\n", current_point.get_spec().c_str(), m_latest_captured_point.get_spec().c_str(), m_latest_capture_distance, m_last_missed_point.get_spec().c_str(), m_last_missed_point.get_spec().compare(m_latest_captured_point.get_spec()));
       post_beam(true, m_latest_captured_point);
-      m_captured = true;
+      m_successful_capture = true;
     }
 
+    //While monitoring, if the waypoint behavior claims that it completes the first queue, but by our criteria some points have been missed, then reconstruct our points queue and transition to active mode
     if (m_tour_complete && m_points_to_revisit.size() > 0)
     {
       for (auto point_it = m_points_to_revisit.rbegin(); m_points_to_revisit.size() > 0; point_it++)
@@ -323,23 +353,22 @@ bool GenPath::Iterate()
       }
       m_state = m_active_mode;
       m_tour_complete = false;
-      //fprintf(fptr, "Mode switching %d (REPLANNING)\n", m_active_mode);
     }
+    //Otherwise, if tour is complete but we have no points to revisit, we tell the vessel to return
     else if (m_tour_complete)
     {
       m_state = m_idle_mode; 
       Notify("RETURN", "true");
-      //fprintf(fptr, "Mode switching %d (DONE)\n", m_idle_mode);
     }
-    //fprintf(fptr, "m_missed_points %d\n", m_missed_points);
   }
+  //IDLE MODE
   else
   {
-    //fprintf(fptr, "null\n");
+    //Nothing to do
   }
 
   m_ticks_since_update++;
-  fclose(fptr);
+  //fclose(fptr);
   AppCastingMOOSApp::PostReport();
   return (true);
 }
@@ -392,7 +421,10 @@ bool GenPath::OnStartUp()
   m_state = m_active_mode;
 
   registerVariables();
+  //Notify shoreside that the vehicle has been brought online and is ready to receive points from pPointAssign
   Notify("READY", "true");
+
+  //For debugging, prepare a file buffer
   time_t rawtime;
   struct tm *timeinfo;
   memset(buffer, '\0', 120);

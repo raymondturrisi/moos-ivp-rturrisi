@@ -1,7 +1,7 @@
 #!/bin/bash 
 #-------------------------------------------------------
 #   Script: launch_vehicle.sh                       
-#  Mission: lab_08_baseline
+#  Mission: distributed_tsp_replan
 #-------------------------------------------------------
 #  Part 1: Set global var defaults
 #----------------------------------------------------------

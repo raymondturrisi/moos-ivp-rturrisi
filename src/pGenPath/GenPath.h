@@ -53,7 +53,7 @@ class GenPath : public AppCastingMOOSApp
 
  double m_current_x, m_current_y;
  bool m_captured_x = false, m_captured_y = false;
- bool m_captured = false;
+ bool m_successful_capture = false;
  double m_visit_radius;
 
  XYPoint m_latest_captured_point;
