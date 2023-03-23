@@ -1,0 +1,6 @@
+
+
+
+./launch_vehicle.sh --ip=10.29.15.40 --shore=10.29.81.107 --vname=HENRY --mport=9001 --pshare=9201 10
+
+./launch_vehicle.sh --ip=10.29.15.40 --shore=10.29.81.107 --vname=GILDA --mport=9002 --pshare=9202 10

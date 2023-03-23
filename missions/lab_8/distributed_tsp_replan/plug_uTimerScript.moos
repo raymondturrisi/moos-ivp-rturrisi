@@ -15,7 +15,7 @@ ProcessConfig = uTimerPointGen
   rand_var = varname=RND_Y, min=$(YMIN), max=$(YMAX), key=at_post, snap=1
 
   event = var=VISIT_POINT, val="firstpoint", time=0
-  event = var=VISIT_POINT, val="x=$(RND_X), y=$(RND_Y), unique_id=$(TCOUNT)", time=1:5, amt=50 
+  event = var=VISIT_POINT, val="x=$(RND_X), y=$(RND_Y), unique_id=$(TCOUNT)", time=1:5, amt=100 
   event = var=VISIT_POINT, val="lastpoint", time=6
 }                                              
 

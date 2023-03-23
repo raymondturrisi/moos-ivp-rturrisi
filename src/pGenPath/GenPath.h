@@ -24,6 +24,9 @@ class GenPath : public AppCastingMOOSApp
  public:
    GenPath();
    ~GenPath();
+   std::vector<XYPoint> sort_points(XYPoint init_point);
+   void post_pulse();
+   void post_beam(bool captured, XYPoint missed);
 
  protected: // Standard MOOSApp functions to overload  
    bool OnNewMail(MOOSMSG_LIST &NewMail);
@@ -41,16 +44,31 @@ class GenPath : public AppCastingMOOSApp
 
  private: // State variables
  std::vector<XYPoint> m_points;
+ std::vector<XYPoint> m_points_to_revisit;
+ XYPoint m_last_missed_point;
+ bool m_tour_complete = false;
+ int m_missed_points = 0;
  bool m_all_points_received = false;
+ double m_latest_capture_distance;
+
  double m_current_x, m_current_y;
  bool m_captured_x = false, m_captured_y = false;
- bool m_active = true;
+ bool m_captured = false;
+ double m_visit_radius;
+
+ XYPoint m_latest_captured_point;
+
  std::string m_vname;
  std::set<std::string> m_ids;
  uint64_t m_ticks_since_update = 0;
  FILE *fptr;
  char buffer [120];
- bool active = true;
+
+ int m_state;
+
+ int m_active_mode = 0;
+ int m_monitor_mode = 1;
+ int m_idle_mode = 2;
 };
 
 #endif 

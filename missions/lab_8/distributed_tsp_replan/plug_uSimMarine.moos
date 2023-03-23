@@ -8,4 +8,5 @@ ProcessConfig = uSimMarine
 
   START_POS = $(START_POS), 180, 0
   PREFIX    = NAV
+  deprecated_ok = true
 }

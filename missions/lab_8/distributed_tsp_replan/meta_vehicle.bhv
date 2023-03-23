@@ -94,6 +94,8 @@ Behavior = BHV_Waypoint
    name         = transit               // example
    pwt          = 100                   // default
    condition    = TRACK_WPTS == true
+   condition    = DEPLOY == true
+   condition    = RETURN == false
 
    updates      = UPDATES_WPTS       // example
 

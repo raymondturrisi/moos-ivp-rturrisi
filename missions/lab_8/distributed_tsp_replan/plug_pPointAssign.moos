@@ -1,10 +1,11 @@
 //--------------------------------------------------
 // pPointAssign Block
 
-ProcessConfig = pGenPath
+ProcessConfig = pPointAssign
 {
    AppTick   = 10
    CommsTick = 10
-   Vehicle = %(VNAME)
-   visit_radius = 5
+   Colors = [yellow, green]
+   Vehicles = [HENRY, GILDA]
+   assign_by_region = true
 }

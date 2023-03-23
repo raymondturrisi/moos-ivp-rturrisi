@@ -1,0 +1,24 @@
+//--------------------------------------------------
+// pLogger Configuration Block (Created from Plugin)
+
+ProcessConfig = pLogger
+{
+  AppTick 	= 10
+  CommsTick 	= 10
+  
+  File		= LOG_%(VNAME)
+  PATH		= ./
+  AsyncLog 	= true
+  FileTimeStamp = true
+
+  // Log it all!!!!!
+  LogAuxSrc       = true
+  WildCardLogging = true 
+  Log             = VISIT_POINT* @ 0
+  Log             = VISIT_POINT_HENRY @ 0
+  Log             = VISIT_POINT_GILDA @ 0
+
+  WildCardOmitPattern = *_STATUS
+
+  CompressAlogs = false
+}
