@@ -9,7 +9,7 @@
 
 ServerHost = localhost
 ServerPort = $(VPORT)
-Community  = $(VNAME)
+Community  = shoreside
 
 #include plug_origin_warp.moos
   
