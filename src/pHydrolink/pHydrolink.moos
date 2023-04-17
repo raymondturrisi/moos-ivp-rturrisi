@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pHydrolink config block
+
+ProcessConfig = pHydrolink
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+
