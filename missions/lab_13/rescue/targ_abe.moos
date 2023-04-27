@@ -1,0 +1,282 @@
+ServerHost = localhost
+ServerPort = 9001
+Community  = abe
+
+MOOSTimeWarp = 20
+
+// Forest Lake
+// LatOrigin  = 43.825300 
+// LongOrigin = -70.330400 
+
+// MIT Sailing Pavilion                                                    
+LatOrigin  = 42.358456                                                                
+LongOrigin = -71.087589 
+
+  
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 50
+   
+  Run = MOOSDB             @ NewConsole = false
+  Run = uSimMarine         @ NewConsole = false
+  Run = pMarinePID         @ NewConsole = false
+  Run = pLogger            @ NewConsole = false
+  Run = pNodeReporter      @ NewConsole = false
+
+  Run = pHelmIvP           @ NewConsole = false
+  Run = uProcessWatch      @ NewConsole = false
+  Run = pContactMgrV20     @ NewConsole = false
+  Run = pShare             @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = uFldMessageHandler @ NewConsole = false
+  Run = uTimerScript       @ NewConsole = false
+  Run = pRealm             @ NewConsole = false
+  Run = pGenRescue         @ NewConsole = false
+}
+  
+//---------------------------------------------------------
+// pShare Config Block  (Created from Plugin)
+
+ProcessConfig = pShare
+{
+  AppTick    = 5
+  CommsTick  = 5
+
+  input = route =  localhost:9201
+}
+
+
+//--------------------------------------------------
+// pHostInfo configuration block
+
+ProcessConfig = pHostInfo
+{
+  AppTick 	= 1
+  CommsTick = 1
+
+  default_hostip_force = localhost
+}
+
+
+//----------------------------------------------------
+// pHelmIvP config block
+
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 1
+  CommsTick  = 1
+
+  ok_skew      = any
+  
+  behaviors    = targ_abe.bhv  
+  verbose      = false
+  domain       = course:0:359:360
+  domain       = speed:0:3:31
+
+  hold_on_app  = pContactMgrV20
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block (Created from Plugin)
+
+ProcessConfig = pLogger
+{
+  AppTick 	= 10
+  CommsTick = 10
+  
+  File      = LOG_ABE
+  PATH      = ./
+  AsyncLog  = true
+  FileTimeStamp = true
+
+  Log = IVPHELM_LIFE_EVENT @ 0 nosync
+  Log = TEAM_ROSTER_DEBUG @ 0 nosync
+  Log = TSK_DEBUG @ 0 nosync
+  Log = TASK_DEBUG @ 0 nosync
+  Log = H_DEBUG @ 0 nosync
+
+  // Log it all!!!!!
+  LogAuxSrc = true
+  WildCardLogging = true 
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = APPCAST
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+
+  CompressAlogs = false
+}
+
+//------------------------------------------
+// uProcessWatch config block
+
+ProcessConfig = uProcessWatch                                   
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4  
+
+	watch_all = true
+	nowatch   = uXMS*
+	nowatch   = uMAC*
+	summary_wait = 5
+}
+
+
+//------------------------------------------
+// pGenRescue config block
+
+ProcessConfig = pGenRescue
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	app_logging = log
+	
+	Vehicle = abe	
+}
+
+//------------------------------------------
+// uTimerScript config block
+
+ProcessConfig = uTimerScript
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  reset_max  = unlimited
+	reset_time = end
+  event      = var=RESCUE_REQUEST, val=vname=abe, time=1
+}
+
+//------------------------------------------
+// pRealm config block
+
+ProcessConfig = pRealm
+{
+  AppTick   = 4
+  CommsTick = 4
+
+	hist_var = MOB_ALERT
+	hist_var = FOUND_SWIMMER
+	scope_set = name=msgs, vars=MOB_ALERT:FOUND_SWIMMER
+}
+
+//--------------------------------------------------
+// uFldMessageHandler config block
+
+ProcessConfig = uFldMessageHandler
+{
+  AppTick   = 3
+  CommsTick = 3
+
+  strict_addressing = false
+}
+
+//--------------------------------------------------
+// uFldNodeBroker config block
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  try_shore_host = pshare_route=localhost:9200
+
+  bridge = src=COLREGS_AVOID_MODE
+  bridge = src=AVDCOL_MODE
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=APPCAST
+  bridge = src=BCM_DETECTION_DIST
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+	bridge = src=VIEW_COMMS_PULSE
+
+	bridge = src=RESCUE_REQUEST
+}
+
+//--------------------------------------------------------
+// pContactMgrV20 config block
+
+ProcessConfig = pContactMgrV20
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  decay = 30,60
+
+  alert_verbose = true
+
+	post_all_ranges = true
+	
+  contact_max_age = 35
+	display_radii_id = avd
+  display_radii = false
+  alert_range_color = gray70
+  cpa_range_color   = gray30
+}
+
+
+//--------------------------------------------------------
+// pNodeReporter config block
+
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 6
+  CommsTick   = 6
+  
+  platform_type = KAYAK
+
+
+
+}
+
+
+//------------------------------------------------------
+// uSimMarine Config Block
+
+ProcessConfig = uSimMarine
+{
+  AppTick   = 10
+  CommsTick = 10
+
+  start_pos = x=39.3,y=5.4, 180
+  prefix    = NAV
+}
+
+//---------------------------------------
+// pMarinePID Config Block
+	
+ProcessConfig = pMarinePID
+{
+  AppTick    = 10
+  CommsTick  = 10
+
+  verbose       = true
+  depth_control = false
+  active_start  = true
+
+  // Yaw PID controller (Set for M300)
+  yaw_pid_kp             = 0.9 
+  yaw_pid_kd             = 0.3 
+  yaw_pid_ki             = 0.3  
+  yaw_pid_integral_limit = 0.3 
+
+  // Speed PID controller
+  speed_pid_kp           = 1.0
+  speed_pid_kd           = 0.0
+  speed_pid_ki           = 0.0
+  speed_pid_integral_limit = 0.07
+
+  // Maximums
+  maxrudder  = 100 // 100
+  maxthrust  = 100
+
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+  //SPEED_FACTOR = 20
+}
+
