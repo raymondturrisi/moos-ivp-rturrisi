@@ -1,0 +1,18 @@
+
+To launch:
+
+$ ./launch.sh --amt=4 15    (4 vehicles, timewarp 15)
+
+
+(1) Hit the DEPLOY button and the vehicles will head to the muster region
+    and wait there.
+
+(2) Hit the CONVOY button and the vehicles will form a convoy and begin
+    a long transit.
+
+During the transit you can hit the left or right mouse buttons and invoke
+an Anderson turn on the vehicle closest to the mouse click. If you click
+closest to the lead vehicle, nothing will happen. The Anderson turn is only
+enable for vehicles in the Convoying MODE.
+
+

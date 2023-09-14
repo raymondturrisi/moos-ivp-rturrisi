@@ -1,0 +1,175 @@
+//---------------------------------------------------
+// Helm Behavior file 
+
+initialize   DEPLOY   = false
+initialize   RETURN   = false
+initialize   STATION  = false
+initialize   AVOID    = true
+initialize   LOITER   = false
+
+set MODE = ACTIVE {
+  DEPLOY = true
+//  FOOBAR = true
+} INACTIVE
+
+set MODE = STATIONING {
+  MODE = ACTIVE
+  STATION = true
+}                       
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} 
+
+set MODE = LOITERING {
+  MODE = ACTIVE
+  LOITER = true
+} 
+	
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name      = station-keep
+  pwt       = 100
+  condition = MODE==STATIONING
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10 
+         outer_speed = 1.0
+
+       transit_speed = 1.3
+          swing_time = 20
+        visual_hints = vertex_size=0, edge_color=gray50
+        visual_hints = label_color=invisible
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+      lead_condition = AVOIDING != active
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+
+           speed = $(TRANSIT_SPD)
+  capture_radius = 2.0
+     slip_radius = 8.0
+          point = 0,-20
+ }
+
+//----------------------------------------------
+Behavior = BHV_Loiter
+{
+  name      = loiter
+  pwt       = 100
+  condition = MODE==LOITERING
+  UPDATES   = LOITER_UPDATE
+  perpetual = true
+
+  endflag   = LOITER=false
+  endflag   = RETURN=true
+
+  activeflag = ENCIRCLE_POSITION=x=-1300,y=0,radius=200
+
+  // Parameters specific to this behavior
+  // ------------------------------------
+     acquire_dist = 3
+   capture_radius = 10
+        center_activate = false
+        clockwise = true
+      slip_radius = 15
+            speed = $(LOITER_SPD)
+        speed_alt = 1.2
+    spiral_factor = 99
+       ipf_type = zaic_spd
+
+          patience = 99
+//          polygon = ellipse:: x=-121,y=-122,major=500,minor=200,pts=16,degs=0
+          polygon = ellipse:: x=-1300,y=0,major=400,minor=400,pts=24,degs=0
+
+     visual_hints = vertex_size  = 1             // default
+     visual_hints = edge_size    = 1             // default
+     visual_hints = vertex_color = dodger_blue   // default
+     visual_hints = edge_color   = white         // default
+     visual_hints = nextpt_color = yellow        // default
+     visual_hints = nextpt_lcolor = invisible
+     visual_hints = nextpt_vertex_size = 5       // default
+     visual_hints = label        = zone3        
+     visual_hints = label_color  = off           
+}
+
+//----------------------------------------------
+Behavior = BHV_AvdColregsV19
+{
+  name       = avdcol_
+  pwt        = 400
+  condition  = AVOID = true 
+  condition  = MODE==ACTIVE
+  updates    = CONTACT_INFO
+  endflag    = CONTACT_RESOLVED = $[CONTACT]
+  templating = spawn
+
+
+             contact = to-be-set
+    on_no_contact_ok = true
+         extrapolate = true
+               decay = 30,60
+
+	post_per_contact_info = true
+	
+        use_refinery = true
+
+        pwt_outer_dist = 100
+        pwt_inner_dist = 50
+        completed_dist = 85
+     min_util_cpa_dist = 20
+     max_util_cpa_dist = 45
+             pwt_grade = linear
+   bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
+}
+
+//----------------------------------------------
+//Behavior = BHV_AvoidCollision
+{
+  name         = ac_
+  pwt          = 300
+  condition    = AVOID = true 
+  updates      = CONTACT_INFO
+
+  activeflag   = AVOIDING = active
+  inactiveflag = AVOIDING = inactive
+  runflag      = AVOIDING = running
+  endflag      = AVOIDING = end
+
+  templating   = spawn
+
+                  contact = to-be-set
+         on_no_contact_ok = true
+              extrapolate = true
+                    decay = 30,60
+
+             use_refinery = true
+
+           pwt_outer_dist = 30
+           pwt_inner_dist = 15
+           completed_dist = 35
+        min_util_cpa_dist = 5
+        max_util_cpa_dist = 15
+                pwt_grade = linear
+      bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
+  bearing_line_label_show = false
+}
+

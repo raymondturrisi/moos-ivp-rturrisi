@@ -1,0 +1,26 @@
+
+o Should be robust to losing z vehicle.
+o Should be robust to multiple tasks MUSTER_ONE mouse clicks
+o left mouse context should station, allstop, return
+o rotating poly for vehicle returning? Hex returning, square skeep
+  oct, stationkeeping?
+
+
+
+
+Muster behavior
+-------------------
+
+o Should be able to ramp up in priority if speed hits zero for some
+  period of time. When hightened priority, the muster speed can be
+  reduced to creeping rate
+o 
+
+
+ColAvoid behavior(s)
+-------------------
+Should automatically reduce min_util_cpa, max_util_cpa when
+(a) contact is slow/stationary
+(b) ownship is already slow/stationary
+In such cases, the requested speed should also be low
+

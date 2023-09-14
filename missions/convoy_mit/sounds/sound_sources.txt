@@ -1,0 +1,15 @@
+Reminder (convert file from mp3 to wav)
+  $ ffmpeg -i file.mp3 newfile.wav
+
+Reminder (play wav file from the command line)
+  $ afplay file.wav       
+
+o enter.wav
+  zapsplat_foley_battery_tester_plastic_slider_slide_fast_003_57229.mp3
+o laserhit.wav
+  zapsplat_science_fiction_laser_hit_thud_zap_delay_001_65399.mp3
+o drip01.wav
+  zapsplat_nature_water_drip_single_001_68916.mp3
+  
+
+ 

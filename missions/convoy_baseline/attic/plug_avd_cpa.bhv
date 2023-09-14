@@ -1,0 +1,31 @@
+//----------------------------------------------
+Behavior = BHV_AvoidCollision
+{
+  name         = ac_
+  pwt          = 300
+  condition    = AVOID = true 
+  updates      = CONTACT_INFO
+	templating   = spawn
+  activeflag   = AVOIDING = active
+  inactiveflag = AVOIDING = inactive
+  runflag      = AVOIDING = running
+  endflag      = AVOIDING = end
+
+
+                  contact = to-be-set
+         on_no_contact_ok = true
+              extrapolate = true
+                    decay = 30,60
+
+             use_refinery = true
+
+           pwt_outer_dist = 10
+           pwt_inner_dist = 5
+           completed_dist = 15
+        min_util_cpa_dist = 2
+        max_util_cpa_dist = 5
+                pwt_grade = linear
+      bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
+  bearing_line_label_show = false
+}
+

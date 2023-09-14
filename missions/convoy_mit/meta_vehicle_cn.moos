@@ -1,0 +1,130 @@
+ServerHost = localhost
+ServerPort = $(MOOS_PORT)
+Community  = $(VNAME)
+
+#include plug_origin_warp.moos
+
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+   
+  Run = MOOSDB             @ NewConsole = false
+  Run = uProcessWatch      @ NewConsole = false
+  Run = pShare             @ NewConsole = false
+  Run = uSimMarineV22      @ NewConsole = false
+  Run = pLogger            @ NewConsole = false
+  Run = pNodeReporter      @ NewConsole = false
+  Run = pHelmIvP           @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = pContactMgrV20     @ NewConsole = false
+  Run = uFldMessageHandler @ NewConsole = false
+  Run = pEncircle          @ NewConsole = false
+  Run = pRealm             @ NewConsole = false
+}
+
+#include plug_uSimMarineV22.moos
+#include plug_uFldMessageHandler.moos
+#include plug_pContactMgrV20.moos
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+#include plug_pLogger.moos
+#include plug_uProcessWatch.moos
+
+
+//------------------------------------------
+// pRealm config block
+
+ProcessConfig = pRealm
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  msg_max_hist     = 20
+  trunc_length     = 270
+  wrap_length      = 90
+  summary_interval = 2.0
+  relcast_interval = 0.8
+	
+  hist_var = NODE_MESSAGE
+  hist_var = NODE_MESSAGE_LOCAL
+}
+
+//----------------------------------------------------
+// pHelmIvP Configuration Block  
+
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+      app_logging = log
+
+  goals_mandatory = true
+
+        ok_skew   = any
+        behaviors = targ_$(VNAME).bhv  
+        verbose   = terse
+        domain    = course:0:359:360
+        domain    = speed:0:$(MAX_SPD):51
+
+     hold_on_apps = pContactMgrV20
+}
+	
+//--------------------------------------------------------
+// pNodeReporter Configuration Block 
+
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 2
+  CommsTick   = 2
+
+  platform_group  = red_team
+  platform_color  = $(COLOR)
+  platform_type   = longship
+  platform_length = 20
+  terse_reports   = true
+}
+
+//--------------------------------------------------
+// uFldNodeBroker configuration block from plugin
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+	app_logging = off
+
+  try_shore_host = pshare_route=$(SHORE_IP):$(SHORE_PSHARE)
+
+  bridge = src=VIEW_POLYGON
+  bridge = src=VIEW_CIRCLE
+  bridge = src=VIEW_POINT
+  bridge = src=VIEW_SEGLIST
+  bridge = src=VIEW_COMMS_PULSE
+  bridge = src=APPCAST
+  bridge = src=REALMCAST
+  bridge = src=TASK_MGR_STATUS
+  bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+}
+
+
+//------------------------------------------
+ProcessConfig = pEncircle
+{
+   AppTick   = 4
+   CommsTick = 4
+
+   circle_position = x=1300,y=0,radius=200
+   max_speed  = 5
+   aggression = 1
+
+   encircle_active = true
+   consider_thresh = 30
+   on_circle_thresh = 20
+
+   message_color = dodger_blue // or "off"
+}

@@ -1,0 +1,8 @@
+x=12,y=-92,heading=97
+x=155,y=1,heading=218
+x=45,y=23,heading=218
+x=145,y=-23,heading=21
+x=19,y=-56,heading=218
+x=45,y=-16,heading=218
+x=15,y=6,heading=218
+x=130,y=19,heading=218

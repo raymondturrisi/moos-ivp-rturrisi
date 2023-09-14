@@ -1,0 +1,327 @@
+//*******************************************************
+// ShoreSide Configuration File
+
+ServerHost = localhost
+ServerPort = 9000
+Community  = shoreside
+
+#include plug_origin_warp.moos
+  
+//--------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB          @ NewConsole = false
+	Run = pMarineViewer   @ NewConsole = false
+  Run = pLogger         @ NewConsole = false
+  Run = uXMS            @ NewConsole = false
+  Run = uProcessWatch   @ NewConsole = false
+  Run = pShare          @ NewConsole = false
+  Run = pHostInfo       @ NewConsole = false
+  Run = uFldShoreBroker @ NewConsole = false
+  Run = uFldNodeComms   @ NewConsole = false
+  Run = pRealm          @ NewConsole = false
+  Run = uFldTaskMonitor @ NewConsole = false
+  Run = uFldConvoyEval  @ NewConsole = false
+  Run = uFldVoronoi     @ NewConsole = false
+  Run = uFldDelve       @ NewConsole = false
+}
+
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+#include plug_uFldConvoyEval.moos
+#include plug_uProcessWatch.moos
+	
+//---------------------------------------------------------
+// uFldDelve Config Block
+
+ProcessConfig = uFldDelve
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+	rate_frame = 15
+}
+	
+//---------------------------------------------------------
+// pRealm Config Block
+
+ProcessConfig = pRealm
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+	hist_var = NODE_MESSAGE
+	hist_var = NODE_MESSAGE_LOCAL
+	hist_var = MUSTER_START
+	hist_var = MUSTER_START_TEST
+	scope_set = name=task_mgr, vars=TASK_MGR_STATUS:MISSION_TASK:MISSION_TASK_ALL
+
+	msg_max_hist = 50
+
+}
+	
+//---------------------------------------------------------
+// uFldVoronoi Config Block
+
+ProcessConfig = uFldVoronoi
+{
+  AppTick    = 0.2
+  CommsTick  = 0.2
+
+//	app_logging = log
+
+	//match_group = blue_team
+	
+	prox_label_color = off
+	prox_fill_color = red
+
+//#include plug_muster_regions.txt
+}
+
+//---------------------------------------------------------
+// uFldTaskMonitor Config Block
+
+ProcessConfig = uFldTaskMonitor
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+	report_discrepancies = false
+	
+	app_logging = off
+}
+
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  // Note: [QBRIDGE = FOO]  is shorthand for                    
+  //       [BRIDGE = src=FOO_$V,  alias=FOO] and                
+  //       [BRIDGE = src=FOO_ALL, alias=FOO]
+
+  qbridge  = DEPLOY, RETURN, STATION, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ, AVOID, UP_LOITER
+  qbridge  = RETURN_UPDATES, BCM_DISPLAY_RADII, USMT_ENABLED, REALMCAST_REQ
+  qbridge  = USMT_MOD_TOWLEN, USMT_SET_TOWLEN, TOM_WELCOME, TOM_PURSUE
+  qbridge  = MISSION_TASK, UP_CONVOY, MUSTER, GATHER, ATURN_ENGAGE, LOITER
+  qbridge  = ENCIRCLE_ACTIVE, UP_MUSTER, SAY_VOLUME, ATURN, CONVOY
+  qbridge  = MEDIATED_MESSAGE, ACK_MESSAGE, TERM_REPORT_INTERVAL
+  qbridge  = COMMS_POLICY
+
+  bridge   = src=UP_LOITER_$N, alias=UP_LOITER
+  bridge   = src=DRIFT_VECTOR_ADD, alias=DRIFT_VECTOR_ADD
+  bridge   = src=HELM_MAP_CLEAR, alias=HELM_MAP_CLEAR
+
+	app_logging = off
+}
+
+//--------------------------------------------------
+// uFldNodeComms Configuration Block
+
+ProcessConfig = uFldNodeComms
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  comms_range      = 2500
+  critical_range   = 150
+  min_msg_interval = 0
+  max_msg_length   = 1000
+  //groups           = true
+
+  //	msg_groups = true
+	
+  view_node_rpt_pulses = false
+}
+
+//--------------------------------------------------
+// pHostInfo Configuration Block
+
+ProcessConfig = pHostInfo
+{
+  AppTick   = 1
+  CommsTick = 1
+}
+
+//--------------------------------------------------
+// uXMS Configuration Block
+
+ProcessConfig = uXMS
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  var = APPCAST_REQ_ALL, DEPLOY_ALL, RETURN_ALL, STATION_ALL
+  var = STATION_HENRY, STATION_GILDA
+  var = RETURN_UPDATES_HENRY, RETURN_UPDATES_GILDA
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block
+
+ProcessConfig = pLogger
+{
+  AppTick       = 10
+  CommsTick     = 10
+  
+  File          = XLOG_SHORESIDE
+  PATH          = ./
+  SyncLog       = true @ 0.2
+  AsyncLog      = true
+  FileTimeStamp = true
+
+  LogAuxSrc     = true
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+}
+
+
+//--------------------------------------------------------
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  //tiff_file            = ./FIS.tif
+  //tiff_file_b          = ./FIS.tif
+  tiff_file            = MIT_SP.tif
+  tiff_file_b          = MIT_SP.tif
+  set_pan_x            = 100
+  set_pan_y            = -300
+  zoom                 = 1.7
+  //set_pan_x            = 60
+  //set_pan_y            = -320
+  //zoom                 = 1.7
+  vehicles_shape_scale = 1.0
+  vehicles_name_mode   = names
+
+	app_logging = log
+	
+  circle_viewable_all = false
+
+	//content_mode = realmcast
+	realmcast_channel = abe:events
+  appcast_viewable = true
+  appcast_color_scheme = indigo
+	appcast_font_size    = large
+  procs_font_size      = large
+  nodes_font_size      = large
+
+	watch_cluster = key=task_manager, vars=MISSION_TASK:TASK_WPT:TM_ALERT_REQUEST
+	watch_cluster = key=messages, vars=NODE_MESSAGE_LOCAL:NODE_MESSAGE
+	watch_cluster = key=states_bids, vars=TASK_OUR_STATE:TASK_OUR_BID:TASK_BID_RCVD:TRANSIT:MODE
+	watch_cluster = key=contacts, vars=BCM_REPORT_REQUEST:CONTACTS_250:CONTACTS_5000
+	watch_cluster = key=mission, vars=DEPLOY:MOOS_MANUAL_OVERRIDE:RETURN:STATION:MODE
+	watch_cluster = key=life_events, vars=TASK_WPT:IVPHELM_LIFE_EVENT
+	
+  stale_report_thresh = 10
+  stale_remove_thresh = 18
+
+  scope = PSHARE_INPUT_SUMMARY
+  scope = NODE_BROKER_PING
+  scope = DEPLOY_ALL
+
+  action = SAY_VOLUME_ALL = mute
+  action = SAY_VOLUME_ALL = vsoft
+  action = SAY_VOLUME_ALL = soft
+  action = SAY_VOLUME_ALL = loud
+  action = SAY_VOLUME_ALL = vloud
+  action = SAY_VOLUME_ALL = 0.05
+
+  action = STATION_ALL = false
+  action = STATION_ALL = true
+
+	action = UP_CONVOY_ALL=compression=0.1
+	action = UP_CONVOY_ALL=compression=0.25
+	action = UP_CONVOY_ALL=compression=0.5
+	action = UP_CONVOY_ALL=compression=0.65
+
+	action = TERM_REPORT_INTERVAL_ALL = 0.8
+	action = TERM_REPORT_INTERVAL     = 0.8
+	
+	action = TERM_REPORT_INTERVAL_ALL = 2
+	action = TERM_REPORT_INTERVAL     = 2
+
+	action = COMMS_POLICY_ALL = open
+	action = COMMS_POLICY_ALL = lean
+	action = COMMS_POLICY_ALL = dire
+
+	action = ENCIRCLE_ACTIVE=false
+	
+  right_context[return_point] = RETURN_$[UP_VNAME_CLOSEST] = true
+  right_context[return_point] = RETURN_UPDATES_$[UP_VNAME_CLOSEST] = points=$[XPOS],$[YPOS]
+  right_context[station]      = STATION_$[UP_VNAME_CLOSEST] = true
+
+  button_1 = DEPLOY # DEPLOY_ALL=true # color=light_green
+  button_1 = MOOS_MANUAL_OVERRIDE_ALL=false # LOITER_ALL=true
+  button_1 = RETURN_ALL=false # STATION_ALL=false # MUSTER_ALL=true
+
+  button_2 = ENCIRCLE # DEPLOY_ALL=true # color=light_green
+  button_2 = MOOS_MANUAL_OVERRIDE_ALL=false # LOITER_ALL=true
+  button_2 = RETURN_ALL=false # STATION_ALL=false # AVOID_ALL=true
+	button_2 = MUSTER_ALL=false # CONVOY_ALL=false # ENCIRLE_ACTIVE=true
+
+	
+  button_3 = STATION:T # STATION_ALL=true
+  button_4 = STATION:F # STATION_ALL=false
+
+  button_5 = RETURN:T  # RETURN_ALL=true
+  button_6 = RETURN:F  # RETURN_ALL=false
+
+  button_7 = ALL_STOP  # DEPLOY_ALL=false
+  button_8 = RESUME    # DEPLOY_ALL=true
+
+  button_9   = ENCIRCLE:Y  # ENCIRCLE_ACTIVE_ALL=true
+  button_10  = ENCIRCLE:N  # ENCIRCLE_ACTIVE_ALL=false
+
+  button_11 = MUSTER_ONE # DEPLOY_ALL=true # color=light_blue
+  button_11 = MOOS_MANUAL_OVERRIDE_ALL=false # LOITER_ALL=false
+  button_11 = RETURN_ALL=false # STATION_ALL=false # ENCIRCLE_ACTIVE=false
+	button_11 = MUSTER_ALL=false # CONVOY_ALL=false
+  button_11 = MISSION_TASK_ALL = type=muster,id=mst_one,region=one
+
+  button_12 = MUSTER_TWO # DEPLOY_ALL=true # color=light_blue
+  button_12 = MOOS_MANUAL_OVERRIDE_ALL=false # LOITER_ALL=false
+  button_12 = RETURN_ALL=false # STATION_ALL=false # ENCIRCLE_ACTIVE=false
+	button_12 = MUSTER_ALL=false # CONVOY_ALL=false
+  button_12 = MISSION_TASK_ALL = type=muster,id=mst_two,region=two
+
+  button_13 = DROP_00 # UNC_DROP_PCT=0
+  button_14 = DROP_10 # UNC_DROP_PCT=10
+
+  button_15 = COMPR_10 # UP_CONVOY=compresion=0.1 
+  button_16 = COMPR_20 # UP_CONVOY=compresion=0.2
+
+  button_17 = COMPR_30 # UP_CONVOY=compresion=0.3 
+  button_18 = COMPR_40 # UP_CONVOY=compresion=0.4
+
+  button_19 = COMPR_50 # UP_CONVOY=compresion=0.5 
+  button_20 = COMPR_60 # UP_CONVOY=compresion=0.6
+	
+  cmd = label=DEPLOY, var=DEPLOY,  sval=true,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=MOOS_MANUAL_OVERRIDE,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=AVOID,  sval=true,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=RETURN,  sval=false,  receivers=all:$(VNAMES)
+  cmd = label=DEPLOY, var=STATION_KEEP,  sval=false,  receivers=all:$(VNAMES)
+
+  cmd = label=RETURN, var=RETURN, sval=true, receivers=all:$(VNAMES)
+  cmd = label=RETURN, var=STATION_KEEP, sval=false, receivers=all:$(VNAMES)
+
+  cmd = label=STATION, var=STATION_KEEP,  sval=true,  receivers=all:$(VNAMES)
+
+  cmd = label=STATION, var=STATION_KEEP,  sval=true,  receivers=all:$(VNAMES)
+}
+
+

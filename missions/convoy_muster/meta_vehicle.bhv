@@ -1,0 +1,333 @@
+//---------------------------------------------------
+// Helm Behavior file 
+
+initialize   DEPLOY  = false
+initialize   MUSTER  = false
+initialize   RETURN  = false
+initialize   STATION = false
+initialize   AVOID   = true
+
+set MODE = ACTIVE {
+  DEPLOY = true
+} INACTIVE
+
+set MODE = STATIONING {
+  MODE = ACTIVE
+  STATION = true
+}                       
+
+set MODE = RETURNING {
+  MODE = ACTIVE
+  RETURN = true
+} 
+
+set MODE = MUSTERING_START {
+  MODE = ACTIVE
+  MUSTER = true
+}                       
+
+set MODE = MUSTERING_GATHER {
+  MODE = ACTIVE
+  GATHER = true
+}                       
+
+set MODE = TRANSITING {
+  MODE = ACTIVE
+  TRANSIT = true
+} 
+
+set MODE = CONVOYING {
+  MODE = ACTIVE
+  CONVOY = true
+} 
+
+//----------------------------------------------
+Behavior = BHV_StationKeep
+{
+  name      = station-keep
+  pwt       = 100
+  condition = MODE==STATIONING
+
+     center_activate = true
+        inner_radius = 5
+        outer_radius = 10 
+         outer_speed = 1.0
+
+       transit_speed = 1.3
+          swing_time = 20
+        visual_hints = vertex_size=0, edge_color=gray50
+        visual_hints = label_color=invisible
+}
+
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+
+      lead_condition = AVOIDING != active
+
+                lead = 8
+         lead_damper = 1
+       lead_to_start = true
+
+           speed = $(SPEED)
+  capture_radius = 2.0
+     slip_radius = 8.0
+          point = 0,-20
+ }
+
+
+//----------------------------------------------                                               
+Behavior = BHV_OpRegion
+{
+  name       = opregion
+  pwt        = 100
+  condition  = MODE==ACTIVE
+//  condition  = OPREGION=true
+
+             polygon = pts={-76,-42: 115,47: 177,-63: 77,-128: -32,-156}
+  trigger_entry_time = 1
+  trigger_exit_time  = 1
+        visual_hints = edge_size=1, vertex_size=2, label_color=invisible
+}
+
+//----------------------------------------------
+Behavior = BHV_ConvoyV21
+{
+  name      = convoy
+  pwt       = 100
+  updates   = UP_CONVOY
+  condition = MODE==CONVOYING
+
+	contact = unset_ok
+
+	patience = 65
+	
+	post_recap_verbose = true
+	
+           radius = 3.0
+      slip_radius = 15.0
+
+  inter_mark_range = 3
+   tail_length_max = 20
+
+	full_stop_convoy_range = 2
+
+     slower_convoy_range = 13
+		  ideal_convoy_range = 15
+		 faster_convoy_range = 17
+	 full_lag_convoy_range = 30		
+	       lag_speed_delta = 2.0
+
+	convoy_flag = CONVOY_RNG=$[CONVOY_RNG]
+
+	convoy_flag = CONVOY_TAIL_RNG=$[TAIL_RNG]
+	convoy_flag = CONVOY_TAIL_ANG=$[TAIL_ANG]
+	convoy_flag = CONVOY_MARKER_BNG=$[MARKER_BNG]
+	convoy_flag = CONVOY_ALIGNMENT=$[ALIGNMENT]
+
+	convoy_flag = CONVOY_TRK_ERR=$[TRK_ERR]
+	
+	visual_hints = marker_color=$(COLOR)
+	visual_hints = marker_size=12
+}
+
+//----------------------------------------------
+Behavior = BHV_Waypoint
+{ 
+  name      = waypt_survey
+  pwt       = 100
+  condition = MODE == TRANSITING
+  endflag   = GATHER = true
+
+	wptflag_on_start = true
+
+  updates    = WPT_UPDATE
+  perpetual  = true
+
+	              lead = 7
+         lead_damper = 1	
+               speed = $(SPEED)   // meters per second
+        capture_line = true
+      capture_radius = 5.0
+         slip_radius = 15.0
+	efficiency_measure = all
+
+  //points = 15,-32:-25,-60:-3,-108:68,-68: 100,-5:54,0
+  points = -21,-95:-11,-125:51,-107:118,-48:102,-3:50,-4
+
+               order = normal
+             repeat  = 0
+
+    visual_hints = nextpt_color=invisible
+    visual_hints = nextpt_vertex_size=8
+    visual_hints = nextpt_lcolor=invisible
+    visual_hints = vertex_color=dodger_blue, edge_color=white
+    visual_hints = vertex_size=5, edge_size=1
+    visual_hints = label_color=invisible
+}
+
+//----------------------------------------------
+Behavior = BHV_AvoidCollision
+{
+  name         = ac_
+  pwt          = 300
+  condition    = AVOID = true 
+  updates      = CONTACT_INFO
+
+  activeflag   = AVOIDING = active
+  inactiveflag = AVOIDING = inactive
+  runflag      = AVOIDING = running
+  endflag      = AVOIDING = end
+
+  templating   = spawn
+
+             contact = to-be-set
+    on_no_contact_ok = true
+         extrapolate = true
+               decay = 30,60
+
+//	           cnflag = @<20 SAY_MOOS=hello
+//	           cnflag = @<20 ROC=$[ROC]
+//	           cnflag = @<20 OS_PORT_OF_CN = $[OS_PORT_OF_CN]
+//	           cnflag = @<20 OS_STAR_OF_CN = $[OS_STAR_OF_CN]
+//	           cnflag = @<20 OS_AFT_OF_CN = $[OS_AFT_OF_CN]
+//	           cnflag = @<20 OS_FORE_OF_CN = $[OS_FORE_OF_CN]
+//             cnflag = @>39 SAY_MOOS=bye
+
+        use_refinery = true
+
+           pwt_outer_dist = 10
+           pwt_inner_dist = 5
+           completed_dist = 15
+        min_util_cpa_dist = 2
+        max_util_cpa_dist = 5
+                pwt_grade = linear
+      bearing_line_config = white:0, green:0.65, yellow:0.8, red:1.0
+  bearing_line_label_show = false
+}
+
+//----------------------------------------------
+Behavior = BHV_TaskWaypoint
+{ 
+       name = twpt_
+    updates = TASK_WPT
+ templating = spawn
+  condition = MODE!=ACTIVE:TRANSITING
+
+         type = waypoint
+ max_bid_wins = false
+
+   team_range = 5000
+	
+  bidwonflag = TRANSIT = true
+  bidwonflag = STATION = false
+  bidwonflag = RETURN  = false
+  bidwonflag = CONVOY  = false
+	xbidwonflag = MISSION_TASK = type=convoy,id=convoy$[ID+1],contact=$[OWNSHIP],exempt=$[OWNSHIP],task_time=$[UTC]
+	
+	// Typically set/overridden upon spawning event
+	waypt_x = 0
+	waypt_y = 0
+	waypt   = 0,0
+}
+
+//----------------------------------------------
+Behavior = BHV_TaskConvoy
+{ 
+       name = tconvoy_
+    updates = TASK_CONVOY
+ templating = spawn
+  condition = MODE!=ACTIVE:TRANSITING
+  condition = MODE!=ACTIVE:FOLLOWING
+
+         type = convoy
+ max_bid_wins = false
+
+   team_range = 5000
+	
+  bidwonflag = CONVOY  = true
+  bidwonflag = TRANSIT = false
+  bidwonflag = STATION = false
+  bidwonflag = UP_CONVOY = contact=$[CONTACT]
+
+	xbidwonflag = MISSION_TASK = type=convoy,id=convoy$[ID+1],contact=$[OWNSHIP], exempt=$[OWNSHIP]:$[EXEMPT],task_time=$[UTC]
+
+	
+}
+
+//----------------------------------------------
+Behavior = BHV_MusterX
+{ 
+  name      = muster_start
+  pwt       = 100
+  condition = MODE==MUSTERING_START
+  UPDATES   = VCOVER_UPDATE
+  perpetual = true
+
+  // Parameters specific to this behavior
+  // ------------------------------------
+    capture_radius  = 2
+    activate_radius = 3           
+              speed = $(SPEED)         
+   stale_nav_thresh = 5
+  //stale_poly_thresh = 10
+
+	muster_region = $(MUSTER_REGION)
+      setpt_method = centroid
+
+	capture_flag = AVOID=false
+	activeflag = AVOID=true
+	
+	 //  post_prox_poly = abe
+	
+   visual_hints = setpt_size   = 4 
+   visual_hints = setpt_color  = dodger_blue 
+   //  visual_hints = vertex_color  = yellow        // default
+   //  visual_hints = vertex_lcolor = aqua          // default
+   //  visual_hints = label         = zone3         // example
+}
+
+
+//----------------------------------------------
+Behavior = BHV_MusterX
+{ 
+  name      = muster_gather
+  pwt       = 100
+  condition = MODE==MUSTERING_GATHER
+  UPDATES   = GATHER_UPDATE
+  perpetual = true
+
+	
+  // Parameters specific to this behavior
+  // ------------------------------------
+    capture_radius  = 2
+    activate_radius = 5            
+              speed = $(SPEED)         
+   stale_nav_thresh = 5
+  //stale_poly_thresh = 10
+
+      muster_region = -19,-37:-6,-66:34,-47:21,-18
+       setpt_method = centroid
+
+	capture_flag = AVOID=false
+	activeflag = AVOID=true
+	
+   //post_prox_poly = all
+	
+   visual_hints = setpt_size   = 4 
+   visual_hints = setpt_color  = dodger_blue 
+   //  visual_hints = vertex_color  = yellow        // default
+   //  visual_hints = vertex_lcolor = aqua          // default
+   //  visual_hints = label         = zone3         // example
+}
+
+

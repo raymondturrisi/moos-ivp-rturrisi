@@ -1,0 +1,43 @@
+//----------------------------------------------
+Behavior = BHV_ConvoyV21X
+{
+  name      = convoy
+  pwt       = 100
+  updates   = UP_CONVOY
+  condition = MODE==CONVOYING
+
+	contact = unset_ok
+
+	patience = 65
+
+	active_convoying = true
+	
+	post_recap_verbose = true
+	
+           radius = 3
+      slip_radius = 15.0
+
+  inter_mark_range = 3
+   tail_length_max = 50
+
+	full_stop_convoy_range = 2
+
+     slower_convoy_range = 10
+		  ideal_convoy_range = 15
+		 faster_convoy_range = 25
+	 full_lag_convoy_range = 35		
+	       lag_speed_delta = 2.0
+
+	convoy_flag = CONVOY_RNG=$[CONVOY_RNG]
+
+	convoy_flag = CONVOY_TAIL_RNG=$[TAIL_RNG]
+	convoy_flag = CONVOY_TAIL_ANG=$[TAIL_ANG]
+	convoy_flag = CONVOY_MARKER_BNG=$[MARKER_BNG]
+	convoy_flag = CONVOY_ALIGNMENT=$[ALIGNMENT]
+
+	convoy_flag = CONVOY_TRK_ERR=$[TRK_ERR]
+	
+	visual_hints = marker_color=$(COLOR)
+	visual_hints = marker_size=3
+}
+

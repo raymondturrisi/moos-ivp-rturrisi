@@ -1,0 +1,42 @@
+Mission for testing dynamic mustering and convoying for Sea Train project
+
+To Run:
+
+$ ./launch.sh --amt=4 10      (4 vehicles, timewarp 10)
+
+(a) After launching, hit the DEPLOY button. This will start the vehicles
+moving toward their muster region
+
+(b) After all the vehicles have arrived in the muster region and are stationary,
+click the CONVOY button to begin the vehicles on a convoy pattern to the
+destination.
+
+(c) After the lead vehicle reaches the destination, it will transition to transiting
+to the "gather" region, using another muster behavior.
+
+Notes:
+============================================
+
+(1) Note that the muster_start behavior has the following configuration:
+
+  capture_flag = AVOID=false
+  activeflag = AVOID=true
+
+The capture flat essentially turns off collision avoidance. Once the vehicle has
+reached a stable, stationary point, it will not activly collision avoid. The
+burden of collision avoidance is on the moving vehicles. If the stationary vehicle
+becomes active again during the muster phase, it will resume active collision
+avoidance until it captures its set point once again
+
+(2) Known limitation of this mission: When the lead vehicle reaches its destination,
+it will activate the "muster_gather" behavior with a different region than the first
+muster behavior. Currently the following vehicles will continue to convoy behind
+the lead vehcile to the gather region. The GATHER button will send a message to all
+following vehicles to stop convoying and also muster at the gather region. Currently
+a muster behavior can be configured with only one muster region. The updates feature
+can be used to change this dynamically, but the plan is to have the muster behavior
+support multiple regions with keys, so only a key name needs to be sent to the
+muster behavior rather than a full polygon specification.
+
+(3) The Muster behavior has few improvements pending to help newly entered vehicles
+more swiftly make room for later vehicles. 

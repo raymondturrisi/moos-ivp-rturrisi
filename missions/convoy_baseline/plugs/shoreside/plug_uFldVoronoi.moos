@@ -1,0 +1,17 @@
+//---------------------------------------------------------
+// uFldVoronoi Config Block
+
+ProcessConfig = uFldVoronoi
+{
+  AppTick    = 0.2
+  CommsTick  = 0.2
+
+//	app_logging = log
+
+	//match_group = blue_team
+	
+	prox_label_color = off
+	prox_fill_color = red
+
+//#include plug_muster_regions.txt
+}
