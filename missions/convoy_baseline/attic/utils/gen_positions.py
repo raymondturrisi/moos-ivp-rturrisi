@@ -16,32 +16,65 @@ def show_example():
 def show_help():
     pass 
 
-agent_names = ["Abe", 
-               "Ben", 
-               "Cal", 
-               "Deb", 
-               "Eve", 
-               "Fin", 
-               "Gus", 
-               "Hal", 
-               "Ira", 
-               "Jen", 
-               "Ken", 
-               "Leo", 
-               "Max", 
-               "Ned", 
-               "Oak", 
-               "Pat", 
-               "Quin", 
-               "Rob", 
-               "Sam", 
-               "Tim", 
-               "Uma", 
-               "Val", 
-               "Wes", 
-               "Xan", 
-               "Yen", 
-               "Zac"]
+agent_names = ["abe", 
+               "ben", 
+               "cal", 
+               "deb", 
+               "eve", 
+               "fin", 
+               "gus", 
+               "hal", 
+               "ira", 
+               "jen", 
+               "ken", 
+               "leo", 
+               "max", 
+               "ned", 
+               "oak", 
+               "pat", 
+               "quin", 
+               "rob", 
+               "sam", 
+               "tim", 
+               "uma", 
+               "val", 
+               "wes", 
+               "xan", 
+               "yen", 
+               "zac"]
+
+agent_colors = [
+    "yellow",
+    "red",
+    "dodger_blue",
+    "green",
+    "purple",
+    "orange",
+    "white",
+    "dark_green",
+    "dark_red",
+    "cyan",
+    "coral",
+    "brown",
+    "bisque",
+    "white",
+    "pink",
+    "darkslateblue",
+    "brown",
+    "burlywood",
+    "goldenrod",
+    "ivory",
+    "khaki",
+    "lime",
+    "peru",
+    "powderblue",
+    "plum",
+    "sienna",
+    "sandybrown",
+    "navy",
+    "olive",
+    "magenta"
+]
 
 def get_more_names(agent_names):
     remaining = amt - len(agent_names)
@@ -92,7 +125,7 @@ if __name__ == "__main__":
             # This has been tested with up to 100 agents with no issues
             amt = int(arg[6:])
             if(amt <= len(agent_names)):
-                agent_names = agent_names[0:amt-1] 
+                agent_names = agent_names[0:amt] 
             else:
                 import names 
                 new_names = get_more_names(agent_names)
@@ -155,6 +188,6 @@ if __name__ == "__main__":
                 hdg = int(np.random.random()*360)
 
                 #Write the agent and this information to a file
-                f.write(f"{a}, {float(x):0.2f}, {float(y):0.2f}, {int(hdg)}")
+                f.write(f"{a}, {float(x):0.2f}, {float(y):0.2f}, {int(hdg)}, {agent_colors[idx%len(agent_colors)]}")
                 if(idx <= len(agent_names)-2):
                     f.write("\n")

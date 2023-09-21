@@ -1,9 +1,9 @@
 #!/bin/bash 
 #-------------------------------------------------------------- 
 #   Script: launch.sh     
-#  Mission: convoy_ctx
-#   Author: Michael Benjamin   
-#   LastEd: November 2021
+#  Mission: convoy_baseline
+#   Author: Raymond Turrisi
+#   LastEd: Sept. 2023
 #-------------------------------------------------------------- 
 #  Part 1: Define a convenience function for producing terminal
 #          debugging/status output depending on the verbosity.
@@ -24,6 +24,9 @@ CMD_ARGS=""
 NOGUI=""
 NOCONFIRM="-nc"
 
+CONFIG_CONDITIONS=""
+PARAM_CONDITIONS=""
+
 RANDSTART="true"
 SHORE_PSHARE="9200"
 SHOREIP="localhost"
@@ -36,8 +39,6 @@ MAXIMUM_SPD=2.0
 
 CONVOY_VERS=""
 
-MTASC="no"
-MTASC_SUBNET="192.168.7"
 USE_CACHE=""
 VLAUNCH_ARGS=" --auto "
 SLAUNCH_ARGS=" --auto "
@@ -71,19 +72,8 @@ for ARGI; do
 	echo "  --norand                                              " 
 	echo "    Do not randomly generate files vpositions.txt. Just "
 	echo "    re-use the previous versions if they exist.         "
-	echo "                                                        "
-	echo "Options For launches on MTASC machines:                 "
-	echo "                                                        "
-	echo "  --mtasc, -m                                           " 
-	echo "    Launch vehicles in the MTASC cluster                " 
 	echo "  --shoreip=<ipaddr>                                    " 
 	echo "    IP address where nodes can expect to find shoreside "
-	echo "  --cache, -c                                           " 
-	echo "    Dont confirm IP address of a pablo before launching "
-	echo "    a mission. Instead, rely on the ~/.pablos_ipfs file "
-	echo "    for a cached mapping of pablo names to IP addresses."
-	echo "    Without this flag, the pablo name/IP will first be  "
-	echo "    confirmed by contacting the pablo. Longer to launch."
 	echo "  --logclean, -l                                        " 
         echo "    Clean (remove) all log files prior to launch        "
 	echo "                                                        "
@@ -91,30 +81,30 @@ for ARGI; do
     elif [ "${ARGI//[^0-9]/}" = "$ARGI" -a "$TIME_WARP" = 1 ]; then 
         TIME_WARP=$ARGI
     elif [ "${ARGI}" = "--verbose" -o "${ARGI}" = "-v" ]; then
-	VERBOSE="--verbose"
-	NOCONFIRM=""
+        VERBOSE="--verbose"
+        NOCONFIRM=""
     elif [ "${ARGI}" = "--just_make" -o "${ARGI}" = "-j" ]; then
-	VLAUNCH_ARGS+=" $ARGI"
-	SLAUNCH_ARGS+=" $ARGI"
-	JUST_MAKE="yes"
+        VLAUNCH_ARGS+=" $ARGI"
+        SLAUNCH_ARGS+=" $ARGI"
+        JUST_MAKE="yes"
     elif [ "${ARGI}" = "--logclean" -o "${ARGI}" = "-l" ]; then
-	VLAUNCH_ARGS+=" $ARGI"
+        VLAUNCH_ARGS+=" $ARGI"
+    elif [ "${ARGI:0:8}" = "--config" ]; then
+        CONFIG_CONDITIONS="${ARGI#--config=*}"
+    elif [ "${ARGI:0:8}" = "--params" ]; then
+        PARAM_CONDITIONS="${ARGI#--params=*}"
     elif [ "${ARGI}" = "--norand" -o "${ARGI}" = "-r" ]; then
-	RANDSTART="false"
-    elif [ "${ARGI}" = "--mtasc" -o "${ARGI}" = "-m" ]; then
-	MTASC="yes"
+        RANDSTART="false"
     elif [ "${ARGI}" = "--nomediate" -o "${ARGI}" = "-nm" ]; then
-	MEDIATED="--nomediate"
+        MEDIATED="--nomediate"
     elif [ "${ARGI:0:10}" = "--shoreip=" ]; then
         SHOREIP="${ARGI#--shoreip=*}"
     elif [ "${ARGI:0:8}" = "--shore=" ]; then
         SHOREIP="${ARGI#--shoreip=*}"
     elif [ "${ARGI:0:9}" = "--maxspd=" ]; then
-	VLAUNCH_ARGS=" $ARGI"
-    elif [ "${ARGI}" = "--cache" -o "${ARGI}" = "-c" ]; then
-        USE_CACHE="--cache"
+        VLAUNCH_ARGS=" $ARGI"
     elif [ "${ARGI}" = "--active_convoy" -o "${ARGI}" = "-ac" ]; then
-	CONVOY_VERS="--active_convoy"
+        CONVOY_VERS="--active_convoy"
     elif [ "${ARGI:0:6}" = "--amt=" ]; then
         AMT="${ARGI#--amt=*}"
 	if [ ! $AMT -ge 1 ]; then
@@ -132,6 +122,16 @@ for ARGI; do
 	exit 1
     fi
 done
+
+if [ $CONFIG_CONDITIONS == "" ]; then 
+    echo "Configuration conditions not set"
+    exit 1
+fi 
+
+if [ $PARAM_CONDITIONS == "" ]; then 
+    echo "Parameter conditions not set"
+    exit 1
+fi 
 
 mkdir logs/${MISSION_NAME}
 #---------------------------------------------------------------
@@ -154,8 +154,6 @@ if [ "${VERBOSE}" != "" ]; then
     echo "CONVOY_VERS =   [${CONVOY_VERS}]   "
     echo "---------------------------------- "
     echo "SHOREIP      =   [${SHOREIP}]      "
-    echo "MTASC        =   [${MTASC}]        "
-    echo "MTASC_SUBNET =   [${MTASC_SUBNET}] "
     echo -n "Hit the RETURN key to continue with launching"
     read ANSWER
 fi
@@ -165,51 +163,30 @@ fi
 #-------------------------------------------------------------
 vecho "Picking Convoy vehicle starting positions."
 
-if [ ! -f "$HOME/.pablo_names" ]; then
-    if  [ "$MTASC" = "yes" ]; then
-	echo "$ME: Could not find ~/.pablo_names. Exit Code 2."
-	exit 2
-    fi
-fi
+declare -a VEHPOS
+declare -a VNAMES
+declare -a COLORS
+count=0
 
-if [ "${RANDSTART}" = "true" -o  ! -f "vpositions.txt" ]; then
-    ./pickpos.sh $AMT
-fi
+if [ $CONFIG_CONDITIONS == "" ]; then 
+    #Nothing to do yet
+    echo "Not here yet"
+else 
+    while IFS=, read -r name x y hdg color || [[ -n $name ]]; do 
+        # Combine the second and third columns for VEHPOS
+        veh_pos="x=$x,y=$y,heading=$hdg"
+        veh_pos="${veh_pos// /}"
+        # Append the parsed values to the arrays
+        VEHPOS+=("$veh_pos")
+        name="${name// /}"
 
-# vehicle names and colors are always deterministic
-pickpos --amt=$AMT --vnames=abe,ben,cal,deb,eve,fin,ned,max,oak  > vnames.txt
-pickpos --amt=$AMT --colors  > vcolors.txt
-
-VEHPOS=(`cat vpositions.txt`)
-VNAMES=(`cat vnames.txt`)
-COLORS=(`cat vcolors.txt`)
-PABLOS=(`cat ~/.pablo_names`)  # only need in mtasc mode
-
-#-------------------------------------------------------------
-# Part 6: In MTASC mode, the shore IP address must be: 
-#         (1) a non-localhost IP address. 
-#         (2) a currently active IP interface for this machine
-#         (3) an IP address on the local MTASC network
-#-------------------------------------------------------------
-if [ "$MTASC" = "yes" ]; then
-    vecho "Verifying Shoreside IP Address for MTASC mode"
-
-    ADDR=""
-    if [ "$SHOREIP" = "localhost" ]; then
-        ADDR=`ipmatch.sh --match=$MTASC_SUBNET`
-    else
-	ADDR=`ipmatch.sh --match=$SHOREIP`
-    fi
-    
-    if [ "$ADDR" != "" ]; then
-	SHOREIP="$ADDR"
-    else
-	echo "Provide active Shore IP addr on MTASC network. Exit Code 3."
-	exit 3
-    fi
-
-    # verify_ssh_key.sh --pablo
-fi
+        VNAMES+=("$name")
+        color="${color// /}"
+        COLORS+=("$color")
+        ((count++))
+    done < $CONFIG_CONDITIONS
+    AMT=$count
+fi 
 
 #-------------------------------------------------------------
 # Part 7: Launch the convoy vehicles
@@ -239,20 +216,7 @@ do
     IX_VLAUNCH_ARGS+=" $TIME_WARP "
 
     #vecho "Launching: $VNAME"
-    if [ "${MTASC}" != "yes" ]; then
 	./launch_vehicle.sh $IX_VLAUNCH_ARGS --mname=$MISSION_NAME
-    else
-	SSH_OPTIONS="-o StrictHostKeyChecking=no -o LogLevel=QUIET "
-	SSH_OPTIONS+="-o ConnectTimeout=1 -o ConnectionAttempts=1 "
-	SSH_OPTIONS+="-o BatchMode=yes "
-
-	PNAME=${PABLOS[$ARRAY_INDEX]}
-	IP=`find_pablo_ip_by_name.sh $USE_CACHE $PNAME | tr -d '\r' `
-    
-	vecho "pablo[$PNAME] IP is: $IP"
-	IX_VLAUNCH_ARGS+=" --mission=$MISSION --mtasc --ip=$IP"
-	ssh student2680@$IP $SSH_OPTIONS mlaunch.sh $IX_VLAUNCH_ARGS &
-    fi
 done
 
 #-------------------------------------------------------------

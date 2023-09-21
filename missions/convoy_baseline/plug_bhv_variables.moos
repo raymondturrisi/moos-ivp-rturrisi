@@ -1,0 +1,11 @@
+// <VARIABLE BLOCK>
+	lag_speed_delta = 0.5
+	full_lag_convoy_range = 12.0
+	faster_convoy_range = 10.0
+	ideal_convoy_range = 7.0
+	slower_convoy_range = 3.0
+	active_convoying = true
+	holding_policy = curr_hdg
+	aft_patience = true
+	compression = 0.0
+// </VARIABLE BLOCK>
