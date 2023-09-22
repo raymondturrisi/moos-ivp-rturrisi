@@ -40,7 +40,6 @@ idx=0
 while [[ idx -lt $# ]]; do
     idx=$((idx+1))
     ARGI=${!idx}
-    echo $ARGI
     CMD_ARGS+=" ${ARGI}"
     if [ "${ARGI}" = "--help" -o "${ARGI}" = "-h" ]; then
 	echo "Not yet!"
@@ -73,12 +72,60 @@ while [[ idx -lt $# ]]; do
 done
 
 idx=0
+p_pid=-1
 for i in $(seq $CONFIG_START $CONFIG_END); do
+    python3 $CONFIG_GENERATOR $i
+
     for j in $(seq $PARAM_START $PARAM_END); do
+        python3 $PARAM_GENERATOR $j
+
         for k in $(seq 1 $TRIALS); do
-            #DO STUFF HERE!
+
+            ./launch.sh 20 --mname=C${i}P${j}K${k} >& /dev/null &
+            pid_l=$!
+
+            sleep 8
+
+            MOOSTime=$(date +%s)
+            MOOSTime=$(( $MOOSTime * 10 + 5))
+
+            uPokeDB targ_shoreside.moos \
+                              DEPLOY_ALL=true \
+                MOOS_MANUAL_OVERRIDE_ALL=false \
+                              LOITER_ALL=false \
+                              RETURN_ALL=false \
+                             STATION_ALL=false \
+                       MISSION_TASK_ALL=type=waypoint,id=001,waypt_x=20,waypt_y=-20,task_time=@MOOSTime \
+                VIEW_RANGE_PULSE=x=0,y=0,radius=50,duration=10,fill=0.9,label=nil, \
+                      edge_color=white,fill_color=white,edge_size=1 \
+                &> /dev/null &
+
+            DONE="false"
+
+            while [ "${DONE}" = "false" ] ; do 
+                if uQueryDB targ_shoreside.moos           \
+                    --condition="QUIT_MISSION == true" >& /dev/null ; then 
+                echo "   Mission Complete" 
+                DONE="true"
+                elif uQueryDB targ_shoreside.moos         \
+                    --condition="DB_UPTIME >= 600" >& /dev/null ; then 
+                echo "   Mission TimeOut" 
+                DONE="true"
+                else
+                echo "   Mission continuing..."
+                sleep 5
+                fi
+            done
+
+            ktm >& /dev/null
+
+            ./post_process.sh C${i}P${j}K${k} & 
+            #p_pid=$!
+            #sleep 2
         done
+
     done
+
 done
 
 #for configuration ...

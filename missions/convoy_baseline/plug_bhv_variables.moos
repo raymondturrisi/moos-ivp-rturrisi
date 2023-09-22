@@ -3,9 +3,9 @@
 	full_lag_convoy_range = 12.0
 	faster_convoy_range = 10.0
 	ideal_convoy_range = 7.0
-	slower_convoy_range = 3.0
-	active_convoying = true
+	slower_convoy_range = 5.333333333333334
+	active_convoying = false
 	holding_policy = curr_hdg
-	aft_patience = true
+	aft_patience = false
 	compression = 0.0
 // </VARIABLE BLOCK>

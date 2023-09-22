@@ -1,6 +1,6 @@
-# << Generated with "generator_set1_configs.py 1" >>
-abe, 37.51, 51.61, 0, yellow
-ben, 34.07, 34.40, 33, red
-cal, 30.59, 40.37, 142, dodger_blue
-deb, 41.16, 42.58, 246, green
-eve, 31.13, 56.34, 9, purple
+# << Generated with "gnrtrs/generator_set1_configs.py 50" >>
+abe, 39.84, -23.16, 91, yellow
+ben, 36.89, -18.68, 358, red
+cal, 37.25, -6.84, 273, dodger_blue
+deb, 34.30, -19.60, 126, green
+eve, 29.36, -0.82, 327, purple

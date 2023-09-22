@@ -18,6 +18,7 @@ ProcessConfig = uFldShoreBroker
   qbridge  = ENCIRCLE_ACTIVE, UP_MUSTER, SAY_VOLUME, ATURN, CONVOY
   qbridge  = MEDIATED_MESSAGE, ACK_MESSAGE, TERM_REPORT_INTERVAL
   qbridge  = COMMS_POLICY
+  qbridge  = QUIT_MISSION
 
   bridge   = src=UP_LOITER_$N, alias=UP_LOITER
   bridge   = src=DRIFT_VECTOR_ADD, alias=DRIFT_VECTOR_ADD

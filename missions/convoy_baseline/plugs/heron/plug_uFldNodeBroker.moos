@@ -26,6 +26,7 @@ ProcessConfig = uFldNodeBroker
   bridge = src=CONVOY_STAT_RECAP
   bridge = src=CONVOY_SPD_POLICY
   bridge = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  bridge = src=QUIT_MISSION
 
 #ifdef MEDIATED yes
   bridge = src=MEDIATED_MESSAGE_LOCAL, alias=MEDIATED_MESSAGE
