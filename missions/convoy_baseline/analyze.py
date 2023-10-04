@@ -178,10 +178,16 @@ if __name__ == "__main__":
             #Unpacks the data we want from the node report
             nr_agent_pre_df = [[cast(n,v[1][n]) for n in node_report_col_names] for v in node_reports]
 
-            
-            rddr = [[entry[0],cast("f",entry[1])] for entry in data["DESIRED_RUDDER"]]
+            #Occasional issues in which DESIRED_RUDDER and DESIRED_THRUST nondeterministically exist, temporary fix until a real solution is found
+            if "DESIRED_RUDDER" in data.keys():
+                rddr = [[entry[0],cast("f",entry[1])] for entry in data["DESIRED_RUDDER"]]
+            else:
+                rddr = [[entry[0],0] for entry in data["NODE_REPORT_LOCAL"]]
             rddr_df = pd.DataFrame(rddr, columns=["time", f"{agent_name}_rudder"]).set_index("time")
-            thrust = [[entry[0],cast("f",entry[1])] for entry in data["DESIRED_THRUST"]]
+            if "DESIRED_THRUST" in data.keys():
+                thrust = [[entry[0],cast("f",entry[1])] for entry in data["DESIRED_THRUST"]]
+            else:
+                thrust = [[entry[0],0] for entry in data["NODE_REPORT_LOCAL"]]
             thrust_df = pd.DataFrame(thrust, columns=["time", f"{agent_name}_thrust"]).set_index("time")
 
 

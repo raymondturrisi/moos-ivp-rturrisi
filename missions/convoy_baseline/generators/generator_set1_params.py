@@ -93,6 +93,7 @@ class ConvoyVariableSet1(DeterministicGenerator):
         aft_patience = ["true", "false"]
         holding_policy = ["curr_hdg", "setpt_hdg"]
         active_convoying = ["true", "false"]
+        full_stop_convoy_range = [1,2]
         slower_convoy_range = list(np.linspace(3,10,4))
         ideal_convoy_range = list(np.linspace(7,20,4))
         faster_convoy_range = list(np.linspace(10,20,4))
@@ -102,13 +103,17 @@ class ConvoyVariableSet1(DeterministicGenerator):
                     ("aft_patience",aft_patience),
                     ("holding_policy",holding_policy),
                     ("active_convoying",active_convoying),
+                    ("full_stop_convoy_range",full_stop_convoy_range),
                     ("slower_convoy_range",slower_convoy_range),
                     ("ideal_convoy_range",ideal_convoy_range),
                     ("faster_convoy_range",faster_convoy_range),
                     ("full_lag_convoy_range",full_lag_convoy_range),
                     ("lag_speed_delta",lag_speed_delta)]
-        current_idx = 0
-        rules = [lambda c: c["slower_convoy_range"] < c["ideal_convoy_range"] and c["ideal_convoy_range"]< c["faster_convoy_range"]]
+        rules = [lambda c: c["full_stop_convoy_range"] < c["slower_convoy_range"],
+                 lambda c: c["slower_convoy_range"] < c["ideal_convoy_range"], 
+                 lambda c: c["ideal_convoy_range"]< c["faster_convoy_range"],
+                 lambda c: c["faster_convoy_range"] < c["full_lag_convoy_range"],
+                 ]
         super().__init__(name, rules, collections)
 #####################
 

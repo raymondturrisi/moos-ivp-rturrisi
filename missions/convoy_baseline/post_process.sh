@@ -117,8 +117,8 @@ done
 # > Run another Python script for composing a plot with relevant information (compress the shit out of it)
 python3 analyze.py ${newest_mission}
 
-rm -rf ${newest_mission}_tmp
+#rm -rf ${newest_mission}_tmp
 
 #7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $newest_mission.7z $newest_mission &> /dev/null
 
-rm -rf $newest_mission
+#rm -rf $newest_mission
