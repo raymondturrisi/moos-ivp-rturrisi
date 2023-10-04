@@ -88,8 +88,9 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             t_now=$(date +%s)
             duration=$((t_now-t_start))
+            mission_name=$(printf "C%03d_P%05d_K%1d" $i $j $k)
             echo "${idx} | ${duration}: Running configuration ${i}, Parameter set ${j}, for trial ${k}"
-            ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=C${i}P${j}K${k}  >& /dev/null &
+            ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name  >& /dev/null &
             pid_l=$!
 
             sleep 8
@@ -127,7 +128,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             ktm >& /dev/null
 
-            ./post_process.sh C${i}P${j}K${k} & 
+            ./post_process.sh $mission_name & 
             #p_pid=$!
             rm targ_*
             t_now=$(date +%s)
