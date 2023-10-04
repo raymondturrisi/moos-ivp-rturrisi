@@ -27,7 +27,7 @@ CONFIG_GENERATOR=""
 CONFIG_RANGE=""
 CONFIG_START=1
 CONFIG_END=1
-
+TIME_WARP=20
 PARAM_GENERATOR=""
 PARAM_RANGE=""
 PARAM_START=1
@@ -35,6 +35,7 @@ PARAM_END=1
 
 TRIALS=1
 POST_PROCESS_SCRIPT_PATH=""
+LAUNCH_ARGS=""
 
 idx=0
 while [[ idx -lt $# ]]; do
@@ -65,6 +66,8 @@ while [[ idx -lt $# ]]; do
         TERM="${TERM//[\[\]]}"
         PARAM_START="${TERM%%..*}"
         PARAM_END="${TERM##*..}"
+    elif [ "${ARGI}" = "--nogui" -o "${ARGI}" = "-n" ]; then
+        LAUNCH_ARGS+=" $ARGI"
     else 
 	echo "$ME: Bad Arg: $ARGI. Exit Code 1."
 	exit 1
@@ -73,6 +76,8 @@ done
 
 idx=0
 p_pid=-1
+t_start=$(date +%s)
+logname="${t_start}.log"
 for i in $(seq $CONFIG_START $CONFIG_END); do
     python3 $CONFIG_GENERATOR $i
 
@@ -81,7 +86,10 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
         for k in $(seq 1 $TRIALS); do
 
-            ./launch.sh 20 --mname=C${i}P${j}K${k} >& /dev/null &
+            t_now=$(date +%s)
+            duration=$((t_now-t_start))
+            echo "${idx} | ${duration}: Running configuration ${i}, Parameter set ${j}, for trial ${k}"
+            ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=C${i}P${j}K${k}  >& /dev/null &
             pid_l=$!
 
             sleep 8
@@ -121,19 +129,13 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             ./post_process.sh C${i}P${j}K${k} & 
             #p_pid=$!
-            #sleep 2
+            rm targ_*
+            t_now=$(date +%s)
+            echo "$idx,$t_now" >> $logname
+            sleep 2
+            idx=$((idx+1))
         done
 
     done
 
 done
-
-#for configuration ...
-#    for parameter set ...
-#        for i in k trials ...
-#            ./launch.sh *args*
-#            ...
-#            while termination conditions are not met
-#                watch for termination conditions
-#                    break if met
-#            given the mission data file, and if given a post process script, pass the mission data file to the post processing script

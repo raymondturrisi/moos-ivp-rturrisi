@@ -1,0 +1,10 @@
+ProcessConfig = uFldConvoyEval                              
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+                                                                
+  recap_var      = CONVOY_RECAP
+  stat_recap_var = CONVOY_STAT_RECAP
+  spd_policy_var = CONVOY_SPD_POLICY
+                                                                
+}                                                               

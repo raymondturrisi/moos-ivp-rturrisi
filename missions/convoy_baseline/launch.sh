@@ -21,7 +21,7 @@ MISSION_NAME="$(gen_ivphash)/"
 VERBOSE=""
 AUTO_LAUNCHED="no"
 CMD_ARGS=""
-NOGUI=""
+LAUNCHGUI=""
 NOCONFIRM="-nc"
 
 LOGDIR_PREF=""
@@ -102,6 +102,8 @@ for ARGI; do
         SHOREIP="${ARGI#--shoreip=*}"
     elif [ "${ARGI:0:9}" = "--maxspd=" ]; then
         VLAUNCH_ARGS=" $ARGI"
+    elif [ "${ARGI}" = "--nogui" -o "${ARGI}" = "-n" ]; then
+        SLAUNCH_ARGS+=" $ARGI"
     elif [ "${ARGI}" = "--active_convoy" -o "${ARGI}" = "-ac" ]; then
         CONVOY_VERS="--active_convoy"
     elif [ "${ARGI:0:6}" = "--amt=" ]; then

@@ -13,7 +13,9 @@ Processconfig = ANTLER
   MSBetweenLaunches = 100
 
   Run = MOOSDB          @ NewConsole = false
-	Run = pMarineViewer   @ NewConsole = false
+  #ifdef LAUNCH_GUI yes
+	  Run = pMarineViewer   @ NewConsole = false
+  #endif
   Run = pLogger         @ NewConsole = false
   Run = uXMS            @ NewConsole = false
   Run = uProcessWatch   @ NewConsole = false
@@ -26,6 +28,7 @@ Processconfig = ANTLER
   Run = uFldConvoyEval  @ NewConsole = false
   Run = uFldVoronoi     @ NewConsole = false
   Run = uFldDelve       @ NewConsole = false
+  Run = uFldCollisionDetect       @ NewConsole = false
 }
 
 #include plugs/shared/plug_pShare.moos
@@ -40,6 +43,7 @@ Processconfig = ANTLER
 #include plugs/shoreside/plug_uFldTaskMonitor.moos
 #include plugs/shoreside/plug_uFldShoreBroker.moos
 #include plugs/shoreside/plug_uFldNodeComms.moos
+#include plugs/shoreside/plug_uFldCollisionDetect.moos
 
 #include plugs/shared/plug_pHostInfo.moos
 #include plugs/shoreside/plug_uXMS.moos

@@ -19,12 +19,13 @@ Processconfig = ANTLER
   Run = pHostInfo          @ NewConsole = false
   Run = uFldNodeBroker     @ NewConsole = false
   Run = uFldMessageHandler @ NewConsole = false
+  Run = uFldConvoyEval     @ NewConsole = false
   Run = uLoadWatch         @ NewConsole = false
   Run = uMemWatch          @ NewConsole = false
   Run = pRealm             @ NewConsole = false
   Run = pHelmIvP           @ NewConsole = false
   Run = pEncircle          @ NewConsole = false
-  Run = pMarinePID         @ NewConsole = false
+  Run = pMarinePID      @ NewConsole = false
 
 #ifdef XMODE SIM
   Run = uSimMarineV22      @ NewConsole = false
@@ -32,6 +33,7 @@ Processconfig = ANTLER
 #else
   Run = iM300              @ NewConsole = false
   Run = iM300Health        @ NewConsole = false
+  
 	#endif
 
 #ifdef MEDIATED yes
@@ -40,6 +42,7 @@ Processconfig = ANTLER
 }
 	
 #include plugs/heron/plug_uFldMessageHandler.moos
+#include plugs/heron/plug_uFldConvoyEval.moos
 #include plugs/heron/plug_pContactMgrV20.moos
 #include plugs/heron/plug_uMemWatch.moos
 #include plugs/shared/plug_pShare.moos
@@ -66,6 +69,5 @@ Processconfig = ANTLER
 #include plugs/heron/plug_pRealm.moos
 #include plugs/heron/plug_pHelmIvP.moos
 #include plugs/heron/plug_pNodeReporter.moos
-
 #include plugs/heron/plug_uFldNodeBroker.moos
 

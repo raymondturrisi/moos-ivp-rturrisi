@@ -20,26 +20,12 @@ ProcessConfig = uSimMarineV22
 
   //post_des_thrust      = DESIRED_THRUST                        
   //post_des_rudder      = DESIRED_RUDDER
-
-  // Yaw PID controller (Set for M300)
-  //yaw_pid_kp             = 0.9 
-  //yaw_pid_kd             = 0.3 
-  //yaw_pid_kd             = 0.6
-  //yaw_pid_ki             = 0.3  
-  //yaw_pid_integral_limit = 0.3 
-
-  // Speed PID controller
-  //speed_pid_kp           = 1.0
-  //speed_pid_kd           = 0.0
-  //speed_pid_ki           = 0.0
-  //speed_pid_integral_limit = 0.07
   
   // Maximums
-  maxrudder  = 100
-  maxthrust  = 100
+  //maxrudder  = 100
+  //maxthrust  = 100
   
   // A non-zero SPEED_FACTOR overrides use of SPEED_PID
   // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
   //speed_factor = 20
 }
-
