@@ -255,12 +255,14 @@ if __name__ == "__main__":
     all_general_info["ordering"] = {lead:1}
     idx = 2
     found = [lead]
+    print(f"Agent info:\n {agent_info}")
     for idx in range(2,len(agent_names)):
-        for name_1,v1 in agent_info.items():
-            if lead == name_1 or name_1 in found:
+        for name_1, v1 in agent_info.items():
+            if name_1 in found:
                 continue 
             else:
                 #Find who is following this lead
+                
                 if v1['following'] == lead:
                     all_general_info["ordering"].update({name_1:idx})
                     found.append(name_1)
@@ -315,7 +317,7 @@ if __name__ == "__main__":
                 legend_markers[idx]=f"{name}_{all_general_info['ordering'][name]}"
             except:
                 print("had an issue with this command")
-                print(all_general_info['ordering'][name])
+                print(all_general_info['ordering'])
                 legend_markers[idx]=f"{name}_{all_general_info['ordering'][name]}"
 
                 exit(1)
@@ -754,13 +756,14 @@ if __name__ == "__main__":
     ax_thrust_det.set_yticklabels(ax_thrust_det.get_yticklabels(),fontsize=6)
 
     ax_thrust_det.grid(True)
+    """
     ax_thrust_det.get_shared_x_axes().join(ax_thrust_det, 
                                            ax_rudder_det, 
                                            ax_in_convoy_det,
                                            ax_rng_to_trg_det,
                                            ax_spd_chngs_det,
                                            ax_heading_det)
-    
+    """
 
 
     ax_heading_det.tick_params(labelleft=True, labelbottom=False, left=False, right=False )

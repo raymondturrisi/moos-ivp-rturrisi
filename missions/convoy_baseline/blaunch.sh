@@ -128,11 +128,11 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             ktm >& /dev/null
 
-            ./post_process.sh $mission_name & 
+            ./post_process.sh $mission_name
             #p_pid=$!
             rm targ_*
             t_now=$(date +%s)
-            echo "$idx,$t_now" >> $logname
+            echo "$idx, $t_now" >> $logname
             sleep 2
             idx=$((idx+1))
         done
