@@ -128,6 +128,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             ktm >& /dev/null
 
+            #TODO: Check to make sure post process completes okay but still detatch/proceed
             ./post_process.sh $mission_name
             #p_pid=$!
             rm targ_*

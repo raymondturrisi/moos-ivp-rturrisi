@@ -10,7 +10,13 @@
 We are assuming the use of MWDataMgr, which caches a collection of directories as a JSON, optionally, but preferred for this type of application
 We take the top level JSON file which would appear, which possesses all the relevant data for a mission
 
+
+TODO:
+ - [ ] Have found semantically incorrect bids in which both agents win the exclusive auction, how do we handle cases in which we can learn from this?
+
 """
+
+
 
 ###### <START>
 if __name__ == "__main__":
@@ -230,7 +236,7 @@ if __name__ == "__main__":
                 ideal_rng = float(spd_policy["ideal_rng"])
                 faster_rng = float(spd_policy["faster_rng"])
                 full_lag_rng = float(spd_policy["full_lag_rng"])
-                task_convoy = data["TASK_CONVOY"][-4][1]
+                task_convoy = data["TASK_WON"][-4][1]
 
                 all_items = dict([k.split("=") for k in task_convoy.split("#")])
                 following = all_items["id"]
@@ -251,11 +257,12 @@ if __name__ == "__main__":
     
     # Find a leader, then find who's following the leader, then them, etc..
     # TODO: Check the semantics of this once more
+    # TODO: Found an edge case in which multiple agents win the same bid
     lead = all_general_info["leader"]
     all_general_info["ordering"] = {lead:1}
     idx = 2
     found = [lead]
-    print(f"Agent info:\n {agent_info}")
+
     for idx in range(2,len(agent_names)):
         for name_1, v1 in agent_info.items():
             if name_1 in found:

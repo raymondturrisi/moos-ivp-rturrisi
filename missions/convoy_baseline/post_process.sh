@@ -111,9 +111,11 @@ for DIR in $newest_mission/*; do
     
 done
 
+#TODO: Check to make sure this runs okay
 # > Run MWDataMgr.py to get CSV files of agent names, and nav positions
 ./mwmgr/mw_directory_conversion.sh $newest_mission
 
+#TODO: Check to make sure this runs okay, it may fail if a mission did not run as expected, and if it fails, we need to put the mission hash into a failed directory, i.e. 00_failed/
 # > Run another Python script for composing a plot with relevant information (compress the shit out of it)
 python3 analyze.py ${newest_mission}
 
