@@ -236,9 +236,10 @@ if __name__ == "__main__":
                 ideal_rng = float(spd_policy["ideal_rng"])
                 faster_rng = float(spd_policy["faster_rng"])
                 full_lag_rng = float(spd_policy["full_lag_rng"])
-                task_convoy = data["TASK_WON"][-4][1]
 
-                all_items = dict([k.split("=") for k in task_convoy.split("#")])
+                task_convoy = data["TASK_WON"][-2][1]
+
+                all_items = dict([k.split("=") for k in task_convoy.split("|")])
                 following = all_items["id"]
                 following = following.replace("follow_","")
 
