@@ -16,8 +16,7 @@ vecho() { if [ "$VERBOSE" != "" ]; then echo "$ME: $1"; fi }
 ME=`basename "$0"`
 TIME_WARP=1
 JUST_MAKE=""
-MISSION="convoy_mit"
-#TODO: Come up with a different hashing function name :(
+MISSION="convoy_baseline"
 MISSION_NAME="$(mhash_gen)/"
 VERBOSE=""
 AUTO_LAUNCHED="no"
@@ -201,6 +200,8 @@ fi
 #-------------------------------------------------------------
 # Part 7: Launch the convoy vehicles
 #-------------------------------------------------------------
+
+VLAUNCH_ARGS+=" $NOCONFIRM "
 ALL_VNAMES=""
 for INDEX in `seq 1 $AMT`;
 do
@@ -215,7 +216,6 @@ do
     fi
     ALL_VNAMES+=$VNAME
     
-    VLAUNCH_ARGS+=" $NOCONFIRM "
     IX_VLAUNCH_ARGS=$VLAUNCH_ARGS
     IX_VLAUNCH_ARGS+=" --index=$INDEX --start=$START    "
     IX_VLAUNCH_ARGS+=" --maxspd=$MAXIMUM_SPD            "

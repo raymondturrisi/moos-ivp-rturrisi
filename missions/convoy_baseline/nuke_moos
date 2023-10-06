@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ "$#" -ne 0 ]; then
+	./kill_descendents.sh $1
+fi
+
+ktm &> /dev/null &
+zkill.sh 
+zkill.sh ~/svn/moos-ivp-swarm/bin
+zkill.sh ~/svn/moos-ivp-pavlab/bin
+zkill.sh ~/svn/moos-ivp-rturrisi/bin
+pkill pAntler
+pkill MOOSDB
+pkill uMAC

@@ -85,14 +85,13 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
         python3 $PARAM_GENERATOR $j
 
         for k in $(seq 1 $TRIALS); do
-
             t_now=$(date +%s)
             duration=$((t_now-t_start))
             mission_name=$(printf "C%03d_P%05d_K%1d" $i $j $k)
             echo "${idx} | ${duration}: Running configuration ${i}, Parameter set ${j}, for trial ${k}"
             ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name  >& /dev/null &
             pid_l=$!
-
+	    
             sleep 8
 
             MOOSTime=$(date +%s)
@@ -126,10 +125,12 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                 fi
             done
 
-            ktm >& /dev/null
-
+	    ./nuke_moos &
+	    sleep 1 
+	    ./nuke_moos &
+	    #pkill -P $pid_l 
             #TODO: Check to make sure post process completes okay but still detatch/proceed
-            ./post_process.sh $mission_name
+            ./post_process.sh $mission_name &
             #p_pid=$!
             rm targ_*
             t_now=$(date +%s)
