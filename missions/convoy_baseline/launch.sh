@@ -17,7 +17,8 @@ ME=`basename "$0"`
 TIME_WARP=1
 JUST_MAKE=""
 MISSION="convoy_mit"
-MISSION_NAME="$(gen_ivphash)/"
+#TODO: Come up with a different hashing function name :(
+MISSION_NAME="$(mhash_gen)/"
 VERBOSE=""
 AUTO_LAUNCHED="no"
 CMD_ARGS=""
