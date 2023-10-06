@@ -166,7 +166,7 @@ declare -a COLORS
 count=0
 
 if [ "$CONFIG_CONDITIONS" == "" -o  ! -f "agent_configurations.txt" ]; then 
-    python3 generator_set1_configs.py $RANDOM
+    python3 generators/generator_set1_configs.py $RANDOM
     CONFIG_CONDITIONS="agent_configurations.txt"
 fi 
 
@@ -192,9 +192,9 @@ AMT=$count
 
 if [ "$PARAM_CONDITIONS" == "" -a  ! -f "plug_bhv_variables.moos" ]; then 
     #Nothing to do yet
-    ub=$(python3 generator_set1_params.py --ub)
+    ub=$(python3 generators/generator_set1_params.py --ub)
     idx="$(( RANDOM % $ub ))"
-    python3 generator_set1_params.py $idx
+    python3 generators/generator_set1_params.py $idx
     PARAM_CONDITIONS="plug_bhv_variables.moos"
 fi 
 
