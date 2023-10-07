@@ -142,3 +142,6 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
     done
 
 done
+
+#Need to wait for the last post processor to finish
+wait $!
