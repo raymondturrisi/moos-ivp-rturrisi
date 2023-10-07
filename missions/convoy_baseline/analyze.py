@@ -301,7 +301,10 @@ if __name__ == "__main__":
     all_data_df.dropna(inplace=True)
 
     #Check to make sure all time rows are monotonically increasing
-    if any(pd.Series(all_data_df.index).diff() < 0):
+
+    #TODO: Add the time differences as its own column
+    t_diff = pd.DataFrame(all_data_df.index).diff().set_index(all_data_df.index)
+    if any(t_diff < 0):
         all_data_df.sort_values(all_data_df['time'], axis=0)
 
     #Base everything w/rt mission start
@@ -690,16 +693,20 @@ if __name__ == "__main__":
 
     total_time_in_convoy = dict()
     mission_duration = all_data_df.index[-1]
+
+    
+
     for a in agent_names:
         if a == all_general_info['leader']:
             continue
         #Take differences in time for all measurements, for all cases in which this agent is also in a convoy, take the cummulative time of the 
         a_in_convoy = all_data_df[f"{a}_in_rng"]
-        iic = np.array(pd.Series(all_data_df.index).diff()[a_in_convoy])
+
+        iic = np.array(t_diff[a_in_convoy])
         iic = iic[~np.isnan(iic)]
         total_time_in_convoy[a] = iic.sum()/mission_duration
     all_in_convoy = all_data_df[f"all_in_range"]
-    total_time_in_convoy['all'] = np.array(pd.Series(all_data_df.index).diff()[all_in_convoy]).sum()/mission_duration
+    total_time_in_convoy['all'] = np.array(t_diff[all_in_convoy]).sum()/mission_duration
     
 
     x = ["all_agents"]
