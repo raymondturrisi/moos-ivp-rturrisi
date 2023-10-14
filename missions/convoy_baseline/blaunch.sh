@@ -112,11 +112,11 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             while [ "${DONE}" = "false" ] ; do 
                 if uQueryDB targ_shoreside.moos           \
-                    --condition="QUIT_MISSION == true" >& /dev/null ; then 
+                    --condition="QUIT_MISSION == true" ; then 
                 echo "   Mission Complete" 
                 DONE="true"
                 elif uQueryDB targ_shoreside.moos         \
-                    --condition="DB_UPTIME >= 600" >& /dev/null ; then 
+                    --condition="DB_UPTIME >= 600"  ; then 
                 echo "   Mission TimeOut" 
                 DONE="true"
                 else
@@ -125,9 +125,9 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                 fi
             done
 
-	    ./nuke_moos &
+	    nuke_moos &
 	    sleep 1 
-	    ./nuke_moos &
+	    nuke_moos &
 	    #pkill -P $pid_l 
             #TODO: Check to make sure post process completes okay but still detatch/proceed
             ./post_process.sh $mission_name &
