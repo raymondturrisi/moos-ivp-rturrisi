@@ -6,9 +6,9 @@ fi
 
 ktm &> /dev/null &
 zkill.sh 
-zkill.sh ~/svn/moos-ivp-swarm/bin
-zkill.sh ~/svn/moos-ivp-pavlab/bin
-zkill.sh ~/svn/moos-ivp-rturrisi/bin
+zkill.sh ~/moos/moos-ivp-swarm/bin
+zkill.sh ~/moos/moos-ivp-pavlab/bin
+zkill.sh ~/moos/moos-ivp-rturrisi/bin
 pkill pAntler
 pkill MOOSDB
 pkill uMAC
