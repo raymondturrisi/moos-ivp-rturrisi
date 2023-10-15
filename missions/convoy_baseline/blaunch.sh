@@ -156,6 +156,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                 if [ $mission_duration -gt $PROCESS_TIME ] ; then
                     echo "   Process TimeOut" 
                     DONE="true"
+                    break
                 fi
 
                 #2) Have we received a QUIT_MISSION queue
@@ -172,9 +173,9 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                     break
 
                     else
-                    
                     sleep 5
                 fi
+                
             done
             sleep 1
 
