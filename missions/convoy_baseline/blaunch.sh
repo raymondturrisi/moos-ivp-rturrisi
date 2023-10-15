@@ -81,7 +81,7 @@ p_pid=-1
 t_start=$(date +%s)
 
 # Open a blaunch log file, writing the mission index and the time
-logname="${t_start}.log"
+logname="logs/${t_start}.log"
 
 # For each configuration index which was given
 for i in $(seq $CONFIG_START $CONFIG_END); do
@@ -91,6 +91,12 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
         #For each trial which was asked
         for k in $(seq 1 $TRIALS); do
+            #TODO: Write a task process which isolates this runtime logic within this block. 
+            # Ideally, it will run a mission, and if the mission times out, or some part fails
+            # in post processing, it will try to run it once more before labeling it as a bad 
+            # mission. The most common mode of failure has been when all the agents don't receive a correct ordering. 
+            # When a mission fails, we want to zip it and see what happens
+
             #Run one trial
 
             # If we are running in the context of singularity, multiple containers are sharing this file system, so we put a mutex
