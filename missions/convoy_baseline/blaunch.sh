@@ -102,7 +102,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             # If we are running in the context of singularity, multiple containers are sharing this file system, so we put a mutex
             # on this element until this mission/test is off the ground
 
-            t_enter==$(date +%s)
+            t_enter=$(date +%s)
             while [ -e "singularity.lock" ]; do
                 echo "singularity.lock: Another container is launching this mission"
                 t_now=$(date +%s)
