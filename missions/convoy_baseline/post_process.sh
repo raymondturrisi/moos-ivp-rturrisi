@@ -124,7 +124,7 @@ if [ $? -ne 0 ]; then
     m_id=${newest_mission#*/}
     m_id=${m_id%_meta}
     mkdir -p logs/failed
-    7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on logs/failed/$newest_mission.7z ${newest_mission}
+    7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on logs/failed/$newest_mission.7z ${newest_mission} &> /dev/null
     rmdir ${newest_mission}_meta
     echo "$m_id" >> logs/failed.txt
 fi 
