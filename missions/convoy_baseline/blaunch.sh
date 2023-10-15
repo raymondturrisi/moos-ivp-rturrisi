@@ -32,7 +32,9 @@ PARAM_GENERATOR=""
 PARAM_RANGE=""
 PARAM_START=1
 PARAM_END=1
-
+MISSION_TIME=600
+#If a MOOS process is no longer reporting an uptime, in realtime, we track the process time to bring things down just in case
+PROCESS_TIME=$(( 10 + $MISSION_TIME / $TIME_WARP))
 TRIALS=1
 POST_PROCESS_SCRIPT_PATH=""
 LAUNCH_ARGS=""
@@ -77,6 +79,7 @@ done
 idx=0
 p_pid=-1
 t_start=$(date +%s)
+
 logname="${t_start}.log"
 for i in $(seq $CONFIG_START $CONFIG_END); do
     python3 $CONFIG_GENERATOR $i
@@ -85,6 +88,9 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
         python3 $PARAM_GENERATOR $j
 
         for k in $(seq 1 $TRIALS); do
+            mission_duration=0
+            mission_start=$(date +%s)
+
             t_now=$(date +%s)
             duration=$((t_now-t_start))
             mission_name=$(printf "C%03d_P%05d_K%1d" $i $j $k)
@@ -111,6 +117,8 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             DONE="false"
 
             while [ "${DONE}" = "false" ] ; do 
+                t_now=$(date +%s)
+                mission_duration=$((t_now-mission_start))
                 if uQueryDB targ_shoreside.moos           \
                     --condition="QUIT_MISSION == true" >& /dev/null ; then 
                 echo "   Mission Complete" 
@@ -119,6 +127,9 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                     --condition="DB_UPTIME >= 600" >& /dev/null ; then 
                 echo "   Mission TimeOut" 
                 DONE="true"
+                elif [ $mission_duration -gt $PROCESS_TIME ] ; then
+                    echo "   Process TimeOut" 
+                    DONE="true"
                 else
                 echo "   Mission continuing..."
                 sleep 5
