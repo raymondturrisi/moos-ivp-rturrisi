@@ -109,7 +109,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                 d=$((t_now-t_enter))
 
                 #If we have been waiting longer than 30 seconds to start our job, there is probably an error in a process which failed but didn't get to clean up after itself
-                if [ d -gt 30 ]; then
+                if [ $d -gt 30 ]; then
                     rm singularity.lock
                     break 
                 fi 
