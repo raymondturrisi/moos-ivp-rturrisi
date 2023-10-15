@@ -136,9 +136,9 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                 fi
             done
 
-	    nuke_moos &
+	    nuke_moos2 &
 	    sleep 1 
-	    nuke_moos &
+	    nuke_moos2 &
 	    #pkill -P $pid_l 
             #TODO: Check to make sure post process completes okay but still detatch/proceed
             ./post_process.sh $mission_name &
