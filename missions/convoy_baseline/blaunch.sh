@@ -86,18 +86,28 @@ logname="${t_start}.log"
 # For each configuration index which was given
 for i in $(seq $CONFIG_START $CONFIG_END); do
 
-    #Generate a new configuration
-    python3 $CONFIG_GENERATOR $i
-
     # For each parameter index which was given
     for j in $(seq $PARAM_START $PARAM_END); do
-
-        #Generate a new set of parameters
-        python3 $PARAM_GENERATOR $j
 
         #For each trial which was asked
         for k in $(seq 1 $TRIALS); do
             #Run one trial
+
+            # If we are running in the context of singularity, multiple containers are sharing this file system, so we put a mutex
+            # on this element until this mission/test is off the ground
+
+            while [ -e "singularity.lock" ]; do
+                echo "Another container is launching this mission"
+                sleep 0.5
+            done
+
+            #Put a lock on the directory until the mission is launched and all the files for this mission have been used
+            touch singularity.lock
+            #Generate a new configuration
+            python3 $CONFIG_GENERATOR $i
+
+            #Generate a new set of parameters
+            python3 $PARAM_GENERATOR $j
 
             #Set timers
             mission_duration=0
@@ -105,7 +115,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             t_now=$(date +%s)
             duration=$((t_now-t_start))
-
+            
             #Generate name of this mission, which is also used for the log files
             mission_name=$(printf "C%03d_P%05d_K%1d" $i $j $k)
             echo "${idx} | ${duration}: Running configuration ${i}, Parameter set ${j}, for trial ${k}"
@@ -113,9 +123,12 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             #Run the mission and detach, but capture the Process ID number
             ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name  >& /dev/null &
             pid_l=$!
+            #This should be just slightly larger than the time it takes to bring up all the apps in pAntler - check time between launches
+            sleep 2
+            rm singularity.lock
 
             #Let things bring themselves up
-            sleep 8
+            sleep 6
 
             #Start the mission by poking the DB
             MOOSTime=$(date +%s)
@@ -174,7 +187,8 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             ./post_process.sh $mission_name &
         
             #Get rid of all the targ files, and write the time to complete these cycle to the blaunch log
-            rm targ_*
+            #TODO: In singularity, with multiple containers, they see eachothers files. Can't remove the target files or files which may be shared among processes
+            #rm targ_*
             t_now=$(date +%s)
             echo "$idx, $t_now" >> $logname
             sleep 2
