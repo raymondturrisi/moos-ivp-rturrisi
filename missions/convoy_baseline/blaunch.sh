@@ -138,32 +138,35 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             while [ "${DONE}" = "false" ] ; do 
                 t_now=$(date +%s)
                 mission_duration=$((t_now-mission_start))
-
-                #1) Have we received a QUIT_MISSION queue
-                if uQueryDB targ_shoreside.moos           \
-                    --condition="QUIT_MISSION == true" >& /dev/null ; then 
-                echo "   Mission Complete" 
-                DONE="true"
-
-                #2) Have we been running over the allotted expected mission time?
-                elif uQueryDB targ_shoreside.moos         \
-                    --condition="DB_UPTIME >= 600" >& /dev/null ; then 
-                echo "   Mission TimeOut" 
-                DONE="true"
-
-                #3) Has the process time for this session ran over?
-                elif [ $mission_duration -gt $PROCESS_TIME ] ; then
+                #1) Has the process time for this session ran over? This would imply a hanging process or application, if it has been exceeded, we cut it
+                if [ $mission_duration -gt $PROCESS_TIME ] ; then
                     echo "   Process TimeOut" 
                     DONE="true"
-                else
-                echo "   Mission continuing..."
-                sleep 5
+                    break
+                fi
+
+                #2) Have we received a QUIT_MISSION queue
+                if uQueryDB targ_shoreside.moos           \
+                    --condition="QUIT_MISSION == true" >& /dev/null ; then 
+                    echo "   Mission Complete" 
+                    DONE="true"
+                    break
+                    #3) Have we been running over the allotted expected mission time?
+                    elif uQueryDB targ_shoreside.moos         \
+                        --condition="DB_UPTIME >= 600" >& /dev/null ; then 
+                    echo "   Mission TimeOut" 
+                    DONE="true"
+                    break
+
+                    else
+                    echo "   Mission continuing..."
+                    sleep 5
                 fi
             done
             sleep 1
 
             #Make sure every single process is brought down
-            nuke_moos2 &
+            nuke_moos2 $pid_l &
             sleep 2 
             
             #TODO: Monitor this process to make sure it gets brought down, but still detach
