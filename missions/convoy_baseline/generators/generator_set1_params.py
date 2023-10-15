@@ -89,16 +89,16 @@ class ConvoyVariableSet1(DeterministicGenerator):
     def __init__(self):
         
         name = "plug_bhv_variables.moos"
-        compression = list(np.linspace(0,1,4))
+        compression = list(np.linspace(0,1,3))
         aft_patience = ["true", "false"]
         holding_policy = ["curr_hdg", "setpt_hdg"]
         active_convoying = ["true", "false"]
         full_stop_convoy_range = [1,2]
-        slower_convoy_range = list(np.linspace(3,10,4))
-        ideal_convoy_range = list(np.linspace(7,20,4))
-        faster_convoy_range = list(np.linspace(10,20,4))
-        full_lag_convoy_range = list(np.linspace(12,45,4))
-        lag_speed_delta = list(np.linspace(0.5,1,4))
+        slower_convoy_range = list(np.linspace(3,10,3))
+        ideal_convoy_range = list(np.linspace(7,20,3))
+        faster_convoy_range = list(np.linspace(10,20,3))
+        full_lag_convoy_range = list(np.linspace(12,45,3))
+        lag_speed_delta = list(np.linspace(0.5,1,3))
         collections = [("compression",compression),
                     ("aft_patience",aft_patience),
                     ("holding_policy",holding_policy),

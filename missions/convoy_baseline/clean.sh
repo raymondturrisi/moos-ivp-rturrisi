@@ -30,7 +30,7 @@ fi
 
 case $ans in
 	[yY]* )
-		rm -rf  $VERBOSE   logs/L* logs/C* logs/*-*-* *.log 
+		rm -rf  $VERBOSE   logs/L* logs/C* logs/*-*-* logs/*.log logs/failed.txt logs/failed/*
 		rm -f   $VERBOSE   *~  targ_* *.moos++ DBG_*
 		rm -f   $VERBOSE   .LastOpenedMOOSLogDirectory
 		rm -f   $VERBOSE   vnames*.txt vspeeds.txt vpositions*.txt vcolors.txt

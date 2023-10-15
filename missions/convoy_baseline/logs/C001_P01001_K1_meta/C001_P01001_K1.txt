@@ -1,0 +1,7 @@
+ALL:t=,c=001_P0100,p=_K1,na=5,si=0.5203827052716957,ti=0.3701901047793276,nm=1.0,co=0.0,ptic=0.3151967582396538,tenc=91,texc=91
+VARIABLES:lag_speed_delta=0.5,full_lag_convoy_range=23.0,faster_convoy_range=16.666666666666668,ideal_convoy_range=11.333333333333332,slower_convoy_range=10.0,full_stop_convoy_range=2,active_convoying=true,holding_policy=setpt_hdg,aft_patience=true,compression=0.0
+1,-1.00,0.5,0.525,0.452,-1.00
+2,0.68,0.4,0.525,0.466,2.85
+3,0.65,0.5,0.523,0.369,3.10
+4,0.68,0.5,0.501,0.166,3.36
+5,0.71,0.5,0.528,0.396,2.44

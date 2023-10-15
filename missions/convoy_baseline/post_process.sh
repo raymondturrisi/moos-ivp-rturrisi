@@ -116,11 +116,20 @@ done
 ./mwmgr/mw_directory_conversion.sh $newest_mission
 
 #TODO: Check to make sure this runs okay, it may fail if a mission did not run as expected, and if it fails, we need to put the mission hash into a failed directory, i.e. 00_failed/
-# > Run another Python script for composing a plot with relevant information (compress the shit out of it)
+# > Run another Python script for composing a plot with relevant information
 python3 analyze.py ${newest_mission}
 
+#If our analysis script fails, we remove the meta directory, but zip the mission to observe what happened later. 
+if [ $? -ne 0 ]; then
+    m_id=${newest_mission#*/}
+    m_id=${m_id%_meta}
+    mkdir -p logs/failed
+    7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on logs/failed/$newest_mission.7z ${newest_mission}
+    rmdir ${newest_mission}_meta
+    echo "$m_id" >> logs/failed.txt
+fi 
+
 rm -rf ${newest_mission}_tmp
-
+# Do we want to save good data? 
 #7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $newest_mission.7z $newest_mission &> /dev/null
-
 rm -rf $newest_mission
