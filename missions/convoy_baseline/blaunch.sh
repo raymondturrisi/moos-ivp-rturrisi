@@ -149,13 +149,13 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             #State monitoring machine, sustaining checks before bringing the mission down
             while [ "${DONE}" = "false" ] ; do 
+                echo "   Mission Running..."
                 t_now=$(date +%s)
                 mission_duration=$((t_now-mission_start))
                 #1) Has the process time for this session ran over? This would imply a hanging process or application, if it has been exceeded, we cut it
                 if [ $mission_duration -gt $PROCESS_TIME ] ; then
                     echo "   Process TimeOut" 
                     DONE="true"
-                    break
                 fi
 
                 #2) Have we received a QUIT_MISSION queue
@@ -172,7 +172,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                     break
 
                     else
-                    echo "   Mission continuing..."
+                    
                     sleep 5
                 fi
             done
