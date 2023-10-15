@@ -102,8 +102,17 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             # If we are running in the context of singularity, multiple containers are sharing this file system, so we put a mutex
             # on this element until this mission/test is off the ground
 
+            t_enter==$(date +%s)
             while [ -e "singularity.lock" ]; do
-                echo "Another container is launching this mission"
+                echo "singularity.lock: Another container is launching this mission"
+                t_now=$(date +%s)
+                d=$((t_now-t_enter))
+
+                #If we have been waiting longer than 30 seconds to start our job, there is probably an error in a process which failed but didn't get to clean up after itself
+                if [ d -gt 30 ]; then
+                    rm singularity.lock
+                    break 
+                fi 
                 sleep 0.5
             done
 
