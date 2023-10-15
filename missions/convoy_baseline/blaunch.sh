@@ -80,26 +80,44 @@ idx=0
 p_pid=-1
 t_start=$(date +%s)
 
+# Open a blaunch log file, writing the mission index and the time
 logname="${t_start}.log"
+
+# For each configuration index which was given
 for i in $(seq $CONFIG_START $CONFIG_END); do
+
+    #Generate a new configuration
     python3 $CONFIG_GENERATOR $i
 
+    # For each parameter index which was given
     for j in $(seq $PARAM_START $PARAM_END); do
+
+        #Generate a new set of parameters
         python3 $PARAM_GENERATOR $j
 
+        #For each trial which was asked
         for k in $(seq 1 $TRIALS); do
+            #Run one trial
+
+            #Set timers
             mission_duration=0
             mission_start=$(date +%s)
 
             t_now=$(date +%s)
             duration=$((t_now-t_start))
+
+            #Generate name of this mission, which is also used for the log files
             mission_name=$(printf "C%03d_P%05d_K%1d" $i $j $k)
             echo "${idx} | ${duration}: Running configuration ${i}, Parameter set ${j}, for trial ${k}"
+
+            #Run the mission and detach, but capture the Process ID number
             ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name  >& /dev/null &
             pid_l=$!
-	    
+
+            #Let things bring themselves up
             sleep 8
 
+            #Start the mission by poking the DB
             MOOSTime=$(date +%s)
             MOOSTime=$(( $MOOSTime * 10 + 5))
 
@@ -116,17 +134,24 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             DONE="false"
 
+            #State monitoring machine, sustaining checks before bringing the mission down
             while [ "${DONE}" = "false" ] ; do 
                 t_now=$(date +%s)
                 mission_duration=$((t_now-mission_start))
+
+                #1) Have we received a QUIT_MISSION queue
                 if uQueryDB targ_shoreside.moos           \
                     --condition="QUIT_MISSION == true" >& /dev/null ; then 
                 echo "   Mission Complete" 
                 DONE="true"
+
+                #2) Have we been running over the allotted expected mission time?
                 elif uQueryDB targ_shoreside.moos         \
                     --condition="DB_UPTIME >= 600" >& /dev/null ; then 
                 echo "   Mission TimeOut" 
                 DONE="true"
+
+                #3) Has the process time for this session ran over?
                 elif [ $mission_duration -gt $PROCESS_TIME ] ; then
                     echo "   Process TimeOut" 
                     DONE="true"
@@ -135,18 +160,23 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                 sleep 5
                 fi
             done
+            sleep 1
 
-	    nuke_moos2 &
-	    sleep 1 
-	    nuke_moos2 &
-	    #pkill -P $pid_l 
-            #TODO: Check to make sure post process completes okay but still detatch/proceed
+            #Make sure every single process is brought down
+            nuke_moos2 &
+            sleep 2 
+            
+            #TODO: Monitor this process to make sure it gets brought down, but still detach
+            #TODO: would like to also monitor it and see if it fails, where if it is from a lack of data, we can rerun the mission
             ./post_process.sh $mission_name &
-            #p_pid=$!
+        
+            #Get rid of all the targ files, and write the time to complete these cycle to the blaunch log
             rm targ_*
             t_now=$(date +%s)
             echo "$idx, $t_now" >> $logname
             sleep 2
+
+            #Repeat! 
             idx=$((idx+1))
         done
 
