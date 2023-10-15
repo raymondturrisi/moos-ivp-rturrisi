@@ -28,10 +28,10 @@ done
 # Run zkill.sh on each moos/bin directory
 for dir in "${!moos_bin_dirs[@]}"; do
 	#echo $dir/*
-	zkill.sh -v -d $dir/*
+	zkill.sh $dir/*
 done
 
 #4: Further, kill specific problematic processes which are either generally persistent, or specific processes which have descendent killing steps built in
-#pkill pAntler
-#pkill MOOSDB
-#pkill uMAC
+pkill pAntler
+pkill MOOSDB
+pkill uMAC
