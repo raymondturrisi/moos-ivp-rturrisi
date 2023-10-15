@@ -161,13 +161,13 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
                 #2) Have we received a QUIT_MISSION queue
                 if uQueryDB targ_shoreside.moos           \
-                    --condition="QUIT_MISSION == true" >& /dev/null ; then 
+                    --condition="QUIT_MISSION == true" --wait=2 >& /dev/null ; then 
                     echo "   Mission Complete" 
                     DONE="true"
                     break
                     #3) Have we been running over the allotted expected mission time?
                     elif uQueryDB targ_shoreside.moos         \
-                        --condition="DB_UPTIME >= 600" >& /dev/null ; then 
+                        --condition="DB_UPTIME >= 600" --wait=2 >& /dev/null ; then 
                     echo "   Mission TimeOut" 
                     DONE="true"
                     break
