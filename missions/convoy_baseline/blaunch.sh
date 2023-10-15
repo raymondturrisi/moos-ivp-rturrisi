@@ -112,11 +112,11 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             while [ "${DONE}" = "false" ] ; do 
                 if uQueryDB targ_shoreside.moos           \
-                    --condition="QUIT_MISSION == true" ; then 
+                    --condition="QUIT_MISSION == true" >& /dev/null ; then 
                 echo "   Mission Complete" 
                 DONE="true"
                 elif uQueryDB targ_shoreside.moos         \
-                    --condition="DB_UPTIME >= 600"  ; then 
+                    --condition="DB_UPTIME >= 600" >& /dev/null ; then 
                 echo "   Mission TimeOut" 
                 DONE="true"
                 else
