@@ -194,6 +194,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             #Make sure every single process is brought down
             nuke_moos2 $pid_l &
             screen -S blaunch-live-monitor -X quit
+	    screen -wipe
 
             sleep 2 
             
