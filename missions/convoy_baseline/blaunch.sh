@@ -39,6 +39,8 @@ TRIALS=1
 POST_PROCESS_SCRIPT_PATH=""
 LAUNCH_ARGS=""
 
+
+#TODO: Allow multiple modes of launch, can provide steps for config and parameter ranges, or a file which has all the experiments to make up for, i.e. the failed directory
 idx=0
 while [[ idx -lt $# ]]; do
     idx=$((idx+1))
@@ -108,11 +110,6 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
                 t_now=$(date +%s)
                 d=$((t_now-t_enter))
 
-                #If we have been waiting longer than 30 seconds to start our job, there is probably an error in a process which failed but didn't get to clean up after itself
-                if [ $d -gt 30 ]; then
-                    rm singularity.lock
-                    break 
-                fi 
                 sleep 0.5
             done
 
@@ -136,7 +133,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             echo "${idx} | ${duration}: Running configuration ${i}, Parameter set ${j}, for trial ${k}"
 
             #Run the mission and detach, but capture the Process ID number
-            ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name  >& /dev/null &
+            screen -S blaunch-live-monitor -d -m ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name
             pid_l=$!
             #This should be just slightly larger than the time it takes to bring up all the apps in pAntler - check time between launches
             sleep 2
@@ -196,6 +193,8 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             #Make sure every single process is brought down
             nuke_moos2 $pid_l &
+            screen -S blaunch-live-monitor -X quit
+
             sleep 2 
             
             #TODO: Monitor this process to make sure it gets brought down, but still detach
