@@ -133,7 +133,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             echo "${idx} | ${duration}: Running configuration ${i}, Parameter set ${j}, for trial ${k}"
 
             #Run the mission and detach, but capture the Process ID number
-            screen -S blaunch-live-monitor -d -m ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name
+            ./launch.sh $LAUNCH_ARGS $TIME_WARP --mname=$mission_name &> /dev/null &
             pid_l=$!
             #This should be just slightly larger than the time it takes to bring up all the apps in pAntler - check time between launches
             sleep 2
@@ -193,8 +193,6 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
             #Make sure every single process is brought down
             nuke_moos2 $pid_l &
-            screen -S blaunch-live-monitor -X quit
-	    screen -wipe
 
             sleep 2 
             
