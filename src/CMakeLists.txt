@@ -18,6 +18,7 @@ include_directories(${LOCAL_LIBRARY_DIRS})
 # add_subdirectory(pXRelayTest) add_subdirectory(pOdometry)
 # add_subdirectory(pOdometryUUV) add_subdirectory(pPointAssign)
 # add_subdirectory(pGenPath) add_subdirectory(pGenRescue)
+add_subdirectory(app_pickposx)
 
 # ##############################################################################
 # END of CMakeLists.txt

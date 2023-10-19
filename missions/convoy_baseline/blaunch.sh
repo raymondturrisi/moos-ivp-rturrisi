@@ -6,14 +6,16 @@
 #--------------------------------------------------------------
 
 # Given a directory of configuration conditions, and a directory of parameter conditions, each set of parameters for each set of configurations K times. 
-# i.e. k*(configuration_conditions * parameter conditions)
+# i.e. k*(configuration_conditions * parameter_conditions)
 
 # Initialize initial values for script
 
 # Parse arguments
 
 ## Arguments being: 
+# A generator function for configuration conditions
 # An index or an index range for a set of configuration conditions, for use with a generator function
+# A generator function for parameter conditions
 # An index or an index range for a set of parameter conditions, for use with a generator function
 # optionally: 
 # - time warp
@@ -93,7 +95,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
 
         #For each trial which was asked
         for k in $(seq 1 $TRIALS); do
-            #TODO: Write a task process which isolates this runtime logic within this block. 
+            #TODO: Write a task process which isolates this runtime logic within this block. (use xlaunch)
             # Ideally, it will run a mission, and if the mission times out, or some part fails
             # in post processing, it will try to run it once more before labeling it as a bad 
             # mission. The most common mode of failure has been when all the agents don't receive a correct ordering. 
@@ -104,6 +106,7 @@ for i in $(seq $CONFIG_START $CONFIG_END); do
             # If we are running in the context of singularity, multiple containers are sharing this file system, so we put a mutex
             # on this element until this mission/test is off the ground
 
+            #TODO: This is only for singularity containers, and isn't really the best solution. Need to improve this
             t_enter=$(date +%s)
             while [ -e "singularity.lock" ]; do
                 echo "singularity.lock: Another container is launching this mission"
