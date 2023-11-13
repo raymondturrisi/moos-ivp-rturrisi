@@ -10,7 +10,7 @@ ProcessConfig = pMediator
 
 	//no_ack_vars = MUSTER_COLLAB
 	
-	resend_thresh = 3
-	max_tries = 20
+	resend_thresh = 1
+	max_tries = 50
 }
 

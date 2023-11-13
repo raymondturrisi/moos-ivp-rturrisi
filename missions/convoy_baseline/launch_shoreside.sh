@@ -20,6 +20,8 @@ IP_ADDR="localhost"
 PSHARE_PORT="9200"
 VNAMES=""
 MISSION_NAME=""
+LEADIN_POSX="-95"
+LEADIN_POSY="-71"
 
 #-------------------------------------------------------
 #  Part 2: Check for and handle command-line arguments
@@ -97,10 +99,11 @@ fi
 #---------------------------------------------------------------
 #  Part 4: Create the .moos file.
 #---------------------------------------------------------------
-nsplug meta_shoreside.moos targ_shoreside.moos -f WARP=$TIME_WARP \
+mkdir targs &> /dev/null
+nsplug meta_shoreside.moos targs/targ_shoreside.moos -f WARP=$TIME_WARP \
        PSHARE_PORT=$PSHARE_PORT     VNAMES=$VNAMES                \
        IP_ADDR=$IP_ADDR             LAUNCH_GUI=$LAUNCH_GUI        \
-       MISSION_NAME=$MISSION_NAME
+       MISSION_NAME=$MISSION_NAME   LEADIN_POSX=$LEADIN_POSX LEADIN_POSY=$LEADIN_POSY
 
 if [ ${JUST_MAKE} = "yes" ]; then
     echo "Files assembled; No launches; exiting per request."
@@ -111,7 +114,7 @@ fi
 #  Part 5: Launch the processes
 #-------------------------------------------------------
 echo "Launching shoreside MOOS Community. WARP is:" $TIME_WARP
-pAntler targ_shoreside.moos >& /dev/null &
+pAntler targs/targ_shoreside.moos >& /dev/null &
 
 
 #---------------------------------------------------------------
@@ -124,5 +127,5 @@ fi
 #---------------------------------------------------------------
 # Part 7: Launch uMAC until the mission is quit
 #---------------------------------------------------------------
-uMAC targ_shoreside.moos
+uMAC targs/targ_shoreside.moos
 kill -- -$$

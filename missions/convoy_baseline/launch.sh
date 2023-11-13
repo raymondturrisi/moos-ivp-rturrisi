@@ -129,6 +129,7 @@ for ARGI; do
     fi
 done
 
+echo $@
 mkdir logs/${MISSION_NAME}
 #---------------------------------------------------------------
 #  Part 4: If verbose, show vars and confirm before launching
@@ -249,5 +250,5 @@ fi
 #-------------------------------------------------------------
 # Part 9: Launch uMAC in paused mode until the mission is quit
 #-------------------------------------------------------------
-uMAC --paused targ_shoreside.moos
+uMAC --paused targs/targ_shoreside.moos
 kill -- -$$

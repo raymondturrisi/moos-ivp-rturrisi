@@ -3,4 +3,4 @@
 --crange="[1..2]" \
 --pg generators/generator_set1_params.py \
 --nogui \
---prange="[1..2]" --k 2
+--prange="[1978..2810]" --k 2

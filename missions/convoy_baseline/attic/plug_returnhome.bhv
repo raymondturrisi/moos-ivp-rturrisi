@@ -1,0 +1,116 @@
+
+ //----------------------------------------------
+Behavior = BHV_TaskWaypoint3
+{ 
+       name = return_point_1
+    updates = TASK_WPT_RTN_1
+ templating = spawn
+    condition = RETURN_1==true
+
+         type = waypoint_return
+ max_bid_wins = false
+ 
+	// Typically set/overridden upon spawning event
+	waypt_x   = 4
+  waypt_y   = -1
+
+  bidwonflag = DEPLOY = false
+  bidwonflag = STATION = false
+  bidwonflag = CONVOY  = false
+  bidwonflag = LEADER  = false
+  xbidwonflag = RETURN = true
+  xbidwonflag = RETURN_2 = true 
+	//xbidwonflag = MISSION_TASK = type=waypoint_return, id=return_002,waypt_x=8,waypt_y=1,task_time=$[UTC],exempt=$[OWNSHIP]:$[EXEMPT]
+}
+
+ //----------------------------------------------
+Behavior = BHV_TaskWaypoint3
+{ 
+       name = return_point_2
+    updates = TASK_WPT_RTN_2
+ templating = spawn
+    condition = RETURN_2==true
+
+         type = waypoint_return
+ max_bid_wins = false
+ 
+	// Typically set/overridden upon spawning event
+	waypt_x   = 7
+  waypt_y   = 2
+
+  bidwonflag = DEPLOY = false
+  bidwonflag = STATION = false
+  bidwonflag = CONVOY  = false
+  bidwonflag = LEADER  = false
+  xbidwonflag = RETURN = true
+  xbidwonflag = RETURN_3 = true 
+}
+
+ //----------------------------------------------
+Behavior = BHV_TaskWaypoint3
+{ 
+       name = return_point_3
+    updates = TASK_WPT_RTN_3
+ templating = spawn
+    condition = RETURN_3==true
+
+         type = waypoint_return
+ max_bid_wins = false
+ 
+	// Typically set/overridden upon spawning event
+	waypt_x   = 10
+  waypt_y   = 5
+
+  bidwonflag = DEPLOY = false
+  bidwonflag = STATION = false
+  bidwonflag = CONVOY  = false
+  bidwonflag = LEADER  = false
+  xbidwonflag = RETURN = true
+  xbidwonflag = RETURN_4 = true 
+}
+
+ //----------------------------------------------
+Behavior = BHV_TaskWaypoint3
+{ 
+       name = return_point_4
+    updates = TASK_WPT_RTN_4
+ templating = spawn
+    condition = RETURN_4==true
+
+         type = waypoint_return
+ max_bid_wins = false
+ 
+	// Typically set/overridden upon spawning event
+	waypt_x   = 13
+  waypt_y   = 8
+
+  bidwonflag = DEPLOY = false
+  bidwonflag = STATION = false
+  bidwonflag = CONVOY  = false
+  bidwonflag = LEADER  = false
+  xbidwonflag = RETURN = true
+  xbidwonflag = RETURN_5 = true 
+}
+
+ //----------------------------------------------
+Behavior = BHV_TaskWaypoint3
+{ 
+       name = return_point_5
+    updates = TASK_WPT_RTN_5
+ templating = spawn
+    condition = RETURN_5==true
+
+         type = waypoint_return
+ max_bid_wins = false
+ 
+	// Typically set/overridden upon spawning event
+	waypt_x   = 6
+  waypt_y   = -4
+
+  bidwonflag = DEPLOY = false
+  bidwonflag = STATION = false
+  bidwonflag = CONVOY  = false
+  bidwonflag = LEADER  = false
+  xbidwonflag = RETURN = true
+  xbidwonflag = RETURN_6 = true 
+}

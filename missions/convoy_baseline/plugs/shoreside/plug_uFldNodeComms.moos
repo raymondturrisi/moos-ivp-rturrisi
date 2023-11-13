@@ -14,6 +14,8 @@ ProcessConfig = uFldNodeComms
   //groups           = true
 
   //	msg_groups = true
+  msg_color        = invisible   
+  msg_repeat_color = invisible   
 	
   view_node_rpt_pulses = false
 }

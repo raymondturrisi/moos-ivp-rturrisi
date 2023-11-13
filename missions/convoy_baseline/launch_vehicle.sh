@@ -290,7 +290,9 @@ if [ "${AUTO_LAUNCHED}" = "no" ]; then
     NSFLAGS="-i -f"
 fi
 
-nsplug meta_vehicle.moos targ_$VNAME.moos $NSFLAGS WARP=$TIME_WARP  \
+mkdir targs &> /dev/null
+
+nsplug meta_vehicle.moos targs/targ_$VNAME.moos $NSFLAGS WARP=$TIME_WARP  \
        PSHARE_PORT=$PSHARE_PORT     VNAME=$VNAME                 \
        COLOR=$COLOR                 MAXSPD=$MAXSPD               \
        START_POS=$START_POS         SHORE_IP=$SHORE_IP           \
@@ -300,7 +302,7 @@ nsplug meta_vehicle.moos targ_$VNAME.moos $NSFLAGS WARP=$TIME_WARP  \
        START_POS=$START_POS         MEDIATED=$MEDIATED           \
        MISSION_NAME=$MISSION_NAME
        
-nsplug meta_vehicle.bhv targ_$VNAME.bhv $NSFLAGS VNAME=$VNAME    \
+nsplug meta_vehicle.bhv targs/targ_$VNAME.bhv $NSFLAGS VNAME=$VNAME    \
        TRANSIT_SPD=$TRANSIT_SPD     COLOR=$COLOR                 \
        CONVOY_ACTIVE=$CONVOY_ACTIVE LEADIN_POS=$LEADIN_POS
        
@@ -313,7 +315,7 @@ fi
 #  Part 7: Launch the vehicle mission
 #-------------------------------------------------------
 vecho "Launching $VNAME MOOS Community. WARP="$TIME_WARP
-pAntler targ_$VNAME.moos >& /dev/null &
+pAntler targs/targ_$VNAME.moos >& /dev/null &
 vecho "Done Launching $VNAME MOOS Community"
 
 #---------------------------------------------------------------
@@ -326,5 +328,5 @@ fi
 #---------------------------------------------------------------
 # Part 9: Launch uMAC until the mission is quit
 #---------------------------------------------------------------
-uMAC targ_$VNAME.moos
+uMAC targs/targ_$VNAME.moos
 kill -- -$$

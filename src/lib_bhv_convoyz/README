@@ -1,0 +1,24 @@
+
+To use the dynamic loading of behaviors, you need to set the following 
+environment variable, in your .bashrc file for bash users, or in your
+.cshrc file for tcsh users. Adjust accordingly if your moos-ivp-pavlab
+tree is not directly in your home directory.
+
+In Linux:
+==========================================
+For bash users:
+export IVP_BEHAVIOR_DIRS=/home/your_username/moos-ivp-pavlab/lib
+
+For tcsh users:
+setenv IVP_BEHAVIOR_DIRS '/home/your_user_name/moos-ivp-pavlab/lib'
+
+
+In OSX:
+==========================================
+For bash users:
+export IVP_BEHAVIOR_DIRS=/Users/your_username/moos-ivp-pavlab/lib
+
+For tcsh users:
+setenv IVP_BEHAVIOR_DIRS '/Users/your_user_name/moos-ivp-pavlab/lib'
+
+

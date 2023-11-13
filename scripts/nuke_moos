@@ -1,14 +1,37 @@
 #!/bin/bash
 
+#Only works in bash, not zsh
+
+#Absolutely Nuke all MOOS related processes
+
+#1: Kill all the descendents of the blaunch.sh script
 if [ "$#" -ne 0 ]; then
-	./kill_descendents.sh $1
+	kill_descendents.sh $1
 fi
 
+#2: Kill The MOOS
 ktm &> /dev/null &
-zkill.sh 
-zkill.sh ~/moos/moos-ivp-swarm/bin
-zkill.sh ~/moos/moos-ivp-pavlab/bin
-zkill.sh ~/moos/moos-ivp-rturrisi/bin
+
+#3: Inspect the user's path, and run zkill on every MOOS executable
+
+# Get all moos/bin directories
+#DIRS=($(echo "$PATH" | tr ':' ' '))
+
+#declare -A moos_bin_dirs
+#
+#for dir in "${DIRS[@]}"; do
+#    if [[ $dir == */moos*/bin ]]; then
+#        moos_bin_dirs["$dir"]=1
+#    fi
+#done
+
+# Run zkill.sh on each moos/bin directory
+#for dir in "${!moos_bin_dirs[@]}"; do
+#	#echo $dir/*
+#	zkill.sh $dir/* &> /dev/null
+#done
+
+#4: Further, kill specific problematic processes which are either generally persistent, or specific processes which have descendent killing steps built in
 pkill pAntler
 pkill MOOSDB
 pkill uMAC

@@ -1,0 +1,19 @@
+This is another shallow bidding equation, similar to the direct distance, 
+however we consider the agent heading
+
+b = dist*(0.75-0.25*cos(phi))
+
+Where phi is the heading to the target. If the heading is antiparallel to the direction to the target, 
+we end up with a negative number, and consider the full distance 
+
+If an agent is facing towards the target already, we consider half the distance 
+
+This is merely a means of achieving a bid which includes heading, and goes no further than providing a weighting schema
+
+To use the dynamic loading of behaviors, you need to set the following 
+environment variable (in your .cshrc file for tcsh users, or the equivalent
+for bash users):
+
+setenv IVP_BEHAVIOR_DIRS '/home/bob/moos-ivp-swarm/lib'
+
+

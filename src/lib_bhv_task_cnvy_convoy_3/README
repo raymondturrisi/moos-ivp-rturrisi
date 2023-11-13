@@ -1,0 +1,11 @@
+This task behavior will compute a dubins turn for the shortest path. 
+Given the smallest turn radius which an agent can take, we calculate the odometry
+
+
+To use the dynamic loading of behaviors, you need to set the following 
+environment variable (in your .cshrc file for tcsh users, or the equivalent
+for bash users):
+
+setenv IVP_BEHAVIOR_DIRS '/home/bob/moos-ivp-swarm/lib'
+
+
