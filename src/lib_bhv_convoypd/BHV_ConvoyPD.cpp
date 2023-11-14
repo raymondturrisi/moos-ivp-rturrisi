@@ -153,6 +153,12 @@ BHV_ConvoyPD::BHV_ConvoyPD(IvPDomain domain) : IvPBehavior(domain)
   m_eps = 0.01;                                 // Meters - sufficient errors
   m_posted_points = 0;                          // counter
   m_max_tail_length = 3 * m_ideal_follow_range; // maximum tail length to be left behind - we have this so the leaders trajectory will mostly be followed
+  m_color = "yellow";
+  m_redudant_update_interval = 2; // by default, every two seconds, we will deliberately post a redundant message to our neighbors
+
+  m_debug = true;
+
+  m_debug_fname = "debug_" + m_us_name + ".txt";
 
   m_ownship = XYPoint(m_osx, m_osy);
   m_target = XYPoint(m_osx, m_osy);
@@ -165,12 +171,14 @@ BHV_ConvoyPD::BHV_ConvoyPD(IvPDomain domain) : IvPBehavior(domain)
   m_nav_spd_k = "NAV_SPEED";
   m_leader_k = "LEADER";
   m_contact_k = "CONTACT";
-  m_agent_info_k = "AGENT_INFO";
+  m_agent_info_k = "AGENT_INFO*";
   m_lead_point_k = "NEW_LEAD_POINT";
   m_contact_list_k = "CONTACTS_LIST";
   m_task_state_k = "TASK_STATE";
   m_whotowho_k = "A_FOLLOWING_B";
+  m_nrl_k = "NODE_REPORT_LOCAL";
   m_updates_var_k = "CONVOY_UPDATES";
+  m_ext_ordering_k = "EXT_ORDERING";
 
   string infovars = m_nav_h_k +
                     "," + m_nav_y_k +
@@ -179,13 +187,37 @@ BHV_ConvoyPD::BHV_ConvoyPD(IvPDomain domain) : IvPBehavior(domain)
                     "," + m_leader_k +
                     "," + m_contact_k +
                     "," + m_agent_info_k +
+                    "," + m_nrl_k +                    
                     "," + m_lead_point_k +
                     "," + m_contact_list_k +
                     "," + m_task_state_k +
                     "," + m_whotowho_k +
+                    "," + m_ext_ordering_k +
                     "," + m_updates_var_k;
 
   addInfoVars(infovars);
+}
+//---------------------------------------------------------
+// Procedure: dbg_print()
+bool BHV_ConvoyPD::dbg_print(const char *format, ...)
+{
+  if (m_debug == true)
+  {
+    va_list args;
+    va_start(args, format);
+    m_cfile = fopen(m_debug_fname.c_str(), "a");
+    if (m_cfile != nullptr)
+    {
+      vfprintf(m_cfile, format, args);
+      fclose(m_cfile);
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  return false;
 }
 
 //---------------------------------------------------------------
@@ -203,6 +235,11 @@ bool BHV_ConvoyPD::setParam(string param, string val)
   else if (param == "desired_speed" && isNumber(val))
   {
     m_desired_speed = stod(val);
+    return true;
+  }
+  else if (param == "ideal_follow_range" && isNumber(val))
+  {
+    m_ideal_follow_range = stod(val);
     return true;
   }
   else if (param == "type")
@@ -314,9 +351,6 @@ void BHV_ConvoyPD::onRunToIdleState()
 {
 }
 
-//---------------------------------------------------------------
-// Procedure: updateMessages()
-//   Purpose: Invoked when idle and when running to keep variables up to date
 double pmod(double a, double b)
 {
   double r = fmod(a, b);
@@ -327,13 +361,9 @@ double pmod(double a, double b)
   return r;
 };
 
-void BHV_ConvoyPD::updateMessages()
+void BHV_ConvoyPD::updateOwnshipState()
 {
-  std::string fname = "garb_" + m_us_name + ".txt";
-  FILE *file;
-  file = fopen(fname.c_str(), "a");
-
-  //TODO: Add a UpdateOwnshipState function
+  m_debug_fname = "debug_" + m_us_name + ".txt";
   m_latest_buffer_time = getBufferCurrTime();
   m_osx = getBufferDoubleVal(m_nav_x_k);
   m_osy = getBufferDoubleVal(m_nav_y_k);
@@ -346,7 +376,6 @@ void BHV_ConvoyPD::updateMessages()
   // Incorporate an exponential moving average filter
   double m_osh_dot_instant = dh / dt;
   double alpha = 0.1;
-  // m_osh_dot = m_osh*alpha+(1-alpha)*m_osh_prv;
   double ff = exp(-alpha * dt);
   m_osh_dot = m_osh_dot * ff + m_osh_dot_instant * (1 - ff);
   m_osh_prv = m_osh;
@@ -357,124 +386,173 @@ void BHV_ConvoyPD::updateMessages()
   m_ownship.set_vx(m_osx);
   m_ownship.set_vy(m_osy);
 
-  //TODO: This should be moved ot the behavior part
+  // TODO: Should find a better place for this and be more consistent with our usage
+  m_self_agent_info.name = m_us_name;
+  m_self_agent_info.x = m_osx;
+  // x_dot - tbd
+  m_self_agent_info.y = m_osy;
+  // y_dot - tbd
+  m_self_agent_info.h = m_osh;
+  m_self_agent_info.h_dot = m_osh_dot;
+  m_self_agent_info.u = m_speed;
+  // v - tbd
+  m_self_agent_info.utc = m_latest_buffer_time;
+  m_self_agent_info.color = m_color;
+}
+
+void BHV_ConvoyPD::updateCapturePoint()
+{
   if (!m_is_leader && m_cpq.m_points.size() > 0)
   {
     XYPoint np = m_cpq.m_points.front().p;
     double dist = hypot(np.get_vy() - m_osy, np.get_vx() - m_osx);
-
     // Captured
     if (dist < 3)
     {
-
       ConvoyPoint prv_cp = m_cpq.dequeue();
-      fprintf(file, "Points in queue:\n %s\n", m_cpq.repr("\n").c_str());
+      // dbg_print( "Points in queue:\n %s\n", m_cpq.repr("\n").c_str());
       XYPoint prv_point = prv_cp.p;
       prv_point.set_active(false);
       postRepeatableMessage("VIEW_POINT", prv_point.get_spec());
-      //!m_is_tail
-      if (true)
+      //! m_is_tail
+      dbg_print("Is tail: %s\n", m_is_tail ? "true" : "false");
+      if (!m_is_tail)
       {
-        NodeMessage node_message;
-        node_message.setSourceNode(m_us_name);
-        node_message.setDestNode(m_follower);
-        node_message.setVarName(m_lead_point_k);
-        node_message.setStringVal(prv_cp.repr());
-        postMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+        propagatePoint(prv_cp);
       }
     }
   }
+}
 
-  if (getBufferVarUpdated(m_leader_k))
-    m_is_leader = tolower(getBufferStringVal(m_leader_k)) == "true" ? true : false;
+void BHV_ConvoyPD::propagatePoint(ConvoyPoint prv_cp)
+{
+  NodeMessage node_message;
+  node_message.setSourceNode(m_us_name);
+  node_message.setDestNode(m_follower);
+  node_message.setVarName(m_lead_point_k);
+  node_message.setStringVal(prv_cp.repr());
+  postRepeatableMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+}
 
-  //TODO: Add a handleUpdateContactList
-  if (getBufferVarUpdated(m_contact_list_k))
+void BHV_ConvoyPD::updateIsLeader()
+{
+  m_is_leader = tolower(getBufferStringVal(m_leader_k)) == "true" ? true : false;
+}
+
+void BHV_ConvoyPD::updateContactList()
+{
+
+  m_contact_list_str = getBufferStringVal(m_contact_list_k);
+  // dbg_print( "New contact\n\t%s\n", m_contact_list_str.c_str());
+  m_contact_list = parseString(m_contact_list_str, ",");
+}
+
+void BHV_ConvoyPD::updateCheckForContact()
+{
+  m_task_state = tolower(getBufferStringVal(m_task_state_k));
+
+  // If we won the convoy bid, we know who we are trailing
+  size_t idx1 = m_task_state.find("id=follow_");
+  size_t idx2 = m_task_state.find("bidwon");
+
+  if ((idx1 != std::string::npos) && (idx2 != std::string::npos) && !m_has_broadcast_contact && !m_is_leader)
   {
-    
-    m_contact_list_str = getBufferStringVal(m_contact_list_k);
-    fprintf(file,"New contact\n\t%s\n",m_contact_list_str.c_str());
-    m_contact_list = parseString(m_contact_list_str, ",");
-  }
-
-  // TODO: Need to check for updates first but it wasn't working - have tried several times
-  if (getBufferVarUpdated(m_task_state_k) &&!m_has_broadcast_contact)
-  //if (true)
-  {
-    // fprintf(file,"New buffer val for task state\n");
-
-    m_task_state = tolower(getBufferStringVal(m_task_state_k));
-
-    // If we won the convoy bid, we know who we are trailing
-    size_t idx1 = m_task_state.find("id=follow_");
-    size_t idx2 = m_task_state.find("bidwon");
-    if ((idx1 != std::string::npos) && (idx2 != std::string::npos) && !m_has_broadcast_contact && !m_is_leader)
-    {
-      // size_t idx1 = m_task_state.find("id=follow_");
-      // size_t idx2 = m_task_state.find(",", idx1 + 10);
-      fprintf(file,"Broadcasting contact from task state\n");
-      m_contact = m_task_state.substr(idx1 + 10);
-      m_contact = biteString(m_contact, ',');
-      m_contact_info.name = m_contact;
-      m_follower_to_leader_mapping[m_us_name] = m_contact;
-      NodeMessage node_message;
-      node_message.setSourceNode(m_us_name);
-      node_message.setDestNode("all");
-      node_message.setVarName(m_whotowho_k);
-      node_message.setStringVal(tolower(m_us_name) + "_following_" + tolower(m_contact));
-      postMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
-      m_has_broadcast_contact = true;
-    }
-  }
-
-  if (getBufferVarUpdated(m_lead_point_k))
-  {
-
-    std::string msg = getBufferStringVal(m_lead_point_k);
-    m_cpq.add_point(ConvoyPoint(msg));
-    XYPoint cp = m_cpq.m_points.back().p;
-
-    postRepeatableMessage("VIEW_POINT", cp.get_spec());
-  }
-
-  //TODO: We need to revisit this part
-  if (true)
-  {
-    // post our own state to all ships
+    // size_t idx1 = m_task_state.find("id=follow_");
+    // size_t idx2 = m_task_state.find(",", idx1 + 10);
+    // dbg_print( "Broadcasting contact from task state\n");
+    m_contact = m_task_state.substr(idx1 + 10);
+    m_contact = biteString(m_contact, ',');
+    // m_contact_info.name = m_contact;
+    m_follower_to_leader_mapping[m_us_name] = m_contact;
     NodeMessage node_message;
-    NodeRecord nr;
-
     node_message.setSourceNode(m_us_name);
     node_message.setDestNode("all");
-    node_message.setVarName(string("AGENT_INFO_") + m_us_name);
-
-    nr.setX(m_osx);
-    nr.setY(m_osy);
-    nr.setHeading(m_osh);
-    nr.setSpeed(m_speed);
-    nr.setName(m_us_name);
-    nr.setTimeStamp(getBufferCurrTime());
-
-    node_message.setStringVal(nr.getSpec());
-
-    postMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
-    fprintf(file,"Posting state to all ships\n");
+    node_message.setVarName(m_whotowho_k);
+    node_message.setStringVal(tolower(m_us_name) + "_following_" + tolower(m_contact));
+    postRepeatableMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+    m_has_broadcast_contact = true;
+    dbg_print("Posting contact\n");
   }
+}
 
-  //TODO: Need to obtain some of the other agent states
-  if (m_has_broadcast_contact)
+void BHV_ConvoyPD::updateLeadPoint()
+{
+  std::string msg = getBufferStringVal(m_lead_point_k);
+  m_cpq.add_point(ConvoyPoint(msg));
+  XYPoint cp = m_cpq.m_points.back().p;
+  cp.set_vertex_color(m_color);
+
+  postRepeatableMessage("VIEW_POINT", cp.get_spec());
+}
+
+void BHV_ConvoyPD::updateFtoLMapping()
+{
+  std::string atob_msg = getBufferStringVal(m_whotowho_k);
+  string agent_a = biteString(atob_msg, '_');
+  biteString(atob_msg, '_');
+  string agent_b = atob_msg;
+  addInfoVars("AGENT_INFO_" + toupper(agent_a));
+  addInfoVars("AGENT_INFO_" + toupper(agent_b));
+
+  m_follower_to_leader_mapping[agent_a] = agent_b;
+  m_has_broadcast_leadership = false;
+
+  std::map<string, string>::iterator it = m_follower_to_leader_mapping.begin();
+  for (; it != m_follower_to_leader_mapping.end(); ++it)
   {
-    // bool ok = true;
-    // if(ok) m_contact_info.x = getBufferDoubleVal(toupper(m_contact)+"_NAV_X", ok);
-    // if(ok) m_contact_info.y = getBufferDoubleVal(toupper(m_contact)+"_NAV_Y", ok);
-    // if(ok) m_contact_info.h = getBufferDoubleVal(toupper(m_contact)+"_NAV_HEADING", ok);
-    // if(ok) m_contact_info.speed = getBufferDoubleVal(toupper(m_contact)+"_NAV_SPEED",   ok);
-    // if(ok) m_contact_info.utc = getBufferDoubleVal(toupper(m_contact)+"_NAV_UTC", ok);
-    m_target.set_vx(m_contact_info.x);
-    m_target.set_vy(m_contact_info.y);
+    dbg_print("%s to %s\n", it->first.c_str(), it->second.c_str());
   }
+}
 
-  if (m_is_leader)
+void BHV_ConvoyPD::handleNodeReport()
+{
+
+  string nr_spec = getBufferStringVal(m_nrl_k);
+  vector<string> fields = parseQuotedString(nr_spec, ',');
+  for (vector<string>::iterator it = fields.begin(); it != fields.end(); ++it)
+  {
+    string entry = *it;
+    string param = biteString(entry, '=');
+    string val = entry;
+    if (tolower(param) == "color")
+    {
+      m_color = val;
+    }
+  }
+}
+
+void BHV_ConvoyPD::handleUpdateVar()
+{
+  string updates_msg = getBufferStringVal(m_updates_var_k);
+  m_updates_buffer = updates_msg;
+  // UPDATES_VAR=gains='kp1,kd1,ki1',gains2='kp2,kd2,ki2',
+  vector<string> updates = parseQuotedString(updates_msg, ',');
+
+  vector<string>::iterator it = updates.begin();
+
+  for (; it != updates.end(); ++it)
+  {
+    // a segment may equal gains='kp1,kd1,ki1'
+    string segment = *it;
+    // gains
+    string param = biteString(segment, '=');
+    //'kp1,kd1,ki1';
+    string value;
+    if (param == m_des_spd_k)
+    {
+      value = biteString(segment, '=');
+      m_desired_speed = stod(value);
+    }
+    else if (param == m_point_update_dist_k)
+    {
+      value = biteString(segment, '=');
+      m_point_update_distance = stod(value);
+    }
+  }
+}
+
+void BHV_ConvoyPD::postLeadership()
+{
   {
     m_contact = "*";
     m_follower_to_leader_mapping[m_us_name] = "*";
@@ -483,125 +561,276 @@ void BHV_ConvoyPD::updateMessages()
     node_message.setDestNode("all");
     node_message.setVarName(m_whotowho_k);
     node_message.setStringVal(tolower(m_us_name) + "_following_" + "*");
-    postMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+    postRepeatableMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+    scheduleRepost("leader_broadcast");
   }
+}
 
-  // bool new_agent_ordering = ;
-  if (getBufferVarUpdated(m_whotowho_k))
-  {
-    std::string atob_msg = getBufferStringVal(m_whotowho_k);
-    string agent_a = biteString(atob_msg, '_');
-    biteString(atob_msg, '_');
-    string agent_b = atob_msg;
-    m_follower_to_leader_mapping[agent_a] = agent_b;
-    m_has_broadcast_leadership = false;
-  }
+void BHV_ConvoyPD::postOrdering()
+{
+  // Contacts list is n-1 agents since it does not include the ownship
+
+  // When we have a mapping of all known agents, we generate our ordering, and share it to all other nodes
 
   std::map<string, string>::iterator it = m_follower_to_leader_mapping.begin();
+
   for (; it != m_follower_to_leader_mapping.end(); ++it)
   {
-    //fprintf(file, "%s to %s\n", it->first.c_str(), it->second.c_str());
+    m_leader_to_follower_mapping[it->second] = it->first;
   }
 
-  //TODO: Add an handleOrderingUpdate function
-  if (m_follower_to_leader_mapping.size() > m_contact_list.size())
+  std::string ahead = "*";
+  std::string tail = "*";
+  m_ordering_str.clear();
+  m_ordering_vector.clear();
+  for (int i = 0; i < m_leader_to_follower_mapping.size(); i++)
   {
-    // Contacts list is n-1 agents since it does not include the ownship
-
-    // When we have a mapping of all known agents, we generate our ordering, and share it to all other nodes
-
-    std::map<string, string>::iterator it = m_follower_to_leader_mapping.begin();
-
-    for (; it != m_follower_to_leader_mapping.end(); ++it)
+    tail = m_leader_to_follower_mapping[ahead];
+    m_ordering_vector.push_back(tail);
+    dbg_print("tail: %s, ahead: %s\n", tail.c_str(), ahead.c_str());
+    ahead = tail;
+    if (m_us_name == tail)
     {
-      m_leader_to_follower_mapping[it->second] = it->first;
+      m_place_in_convoy = i;
     }
+  }
 
-    std::string ahead = "*";
-    std::string tail = "*";
-    std::string ordering_str;
+  for(int i = 0; i < m_ordering_vector.size(); i++) {
+    m_ordering_str+=m_ordering_vector[i];
+    if(i+1 < m_ordering_vector.size()) {
+      m_ordering_str+=",";
+    }
+  }
 
-    for (int i = 0; i < m_leader_to_follower_mapping.size(); i++)
+
+  if (tail == m_us_name)
+  {
+    m_is_tail = true;
+  }
+  else
+  {
+    m_is_tail = false;
+  }
+  if (true)
+  {
+    m_follower = m_leader_to_follower_mapping[m_us_name];
+    dbg_print("Follower: %s\n", m_follower.c_str());
+  }
+
+  else if (!m_is_leader && !m_is_tail)
+  {
+    m_is_midship = true;
+  }
+
+  NodeMessage node_message;
+  node_message.setSourceNode(m_us_name);
+  node_message.setDestNode("all");
+  node_message.setVarName(m_ext_ordering_k);
+  node_message.setStringVal(m_ordering_str);
+  postRepeatableMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+
+  dbg_print("ordering: %s\n", m_ordering_str.c_str());
+  postRepeatableMessage("ORDERING", m_ordering_str);
+}
+
+void BHV_ConvoyPD::seedPoints()
+{
+  if ((abs(m_osx - m_osx_prv) > m_eps) &&
+      (abs(m_osy - m_osy_prv) > m_eps))
+  {
+    double dx = m_osx - m_osx_prv;
+    double dy = m_osy - m_osy_prv;
+    double dh = m_osh - m_osh_prv;
+
+    m_osx_prv = m_osx;
+    m_osy_prv = m_osy;
+    m_osh_prv = m_osh;
+    m_interval_odo += sqrt(dy * dy + dx * dx);
+  }
+  if (m_interval_odo >= m_point_update_distance)
+  {
+
+    XYPoint cp(m_osx, m_osy);
+    // cp.set_duration(20);
+    cp.set_vertex_color("red");
+    cp.set_vertex_size(10);
+    cp.set_active(true);
+    cp.set_label(to_string(m_posted_points));
+    cp.set_label_color("invisible");
+    cp.set_id(to_string(m_posted_points));
+    // postRepeatableMessage("VIEW_POINT", cp.get_spec());
+    // m_previous_points.push_back(cp);
+    ConvoyPoint cpp(cp);
+
+    cpp.set_st(getBufferCurrTime());
+    cpp.set_spd(m_speed);
+    cpp.set_lh(m_osh);
+    cpp.set_lhr(m_osh_dot);
+
+    // m_cpq.add_point(cpp);
+    ConvoyPoint cp_alt(cpp.repr()); // temporary
+
+    m_interval_odo = 0;
+    double dist_between = m_cpq.get_dist_to_target();
+
+    NodeMessage node_message;
+    node_message.setSourceNode(m_us_name);
+    node_message.setDestNode(m_follower);
+    node_message.setVarName(m_lead_point_k);
+    node_message.setStringVal(cpp.repr());
+    postRepeatableMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+    m_posted_points++;
+  }
+}
+
+void BHV_ConvoyPD::generalBroadcasts()
+{
+  if (m_is_leader)
+  {
+    if (shouldRepost("leader_broadcast"))
     {
-      tail = m_leader_to_follower_mapping[ahead];
-      m_ordering_vector.push_back(tail);
-      ahead = tail;
-      if (m_us_name == tail)
-        m_place_in_convoy = i;
+      postLeadership();
+      scheduleRepost("leader_broadcast");
+    }
+  }
 
-      ordering_str += tail;
-      if (i != m_leader_to_follower_mapping.size() - 1)
-      {
-        ordering_str += ",";
+  if (shouldRepost("ordering"))
+  {
+    postOrdering();
+    scheduleRepost("ordering");
+  }
+}
+
+bool BHV_ConvoyPD::shouldRepost(std::string field)
+{
+  if (m_next_redundant_update.count(field) == 0)
+  {
+    m_next_redundant_update[field] = 0;
+  }
+  return m_next_redundant_update[field] < m_latest_buffer_time;
+}
+
+void BHV_ConvoyPD::scheduleRepost(std::string field)
+{
+  m_next_redundant_update[field] = m_latest_buffer_time + m_redudant_update_interval;
+}
+
+void BHV_ConvoyPD::clamp(double &value, double min, double max) {
+  if(value < min) {
+    value = min;
+  }
+  if(value > max) {
+    value = max;
+  }
+}
+
+void BHV_ConvoyPD::updateExtOrdering() {
+  std::string ext_ordering = getBufferStringVal(m_ext_ordering_k);
+  
+  if(ext_ordering.size() > m_ordering_str.size()) {
+    dbg_print("Our ordering: %s - their ordering %s\n", m_ordering_str.c_str(), ext_ordering.c_str());
+    vector<string> ext_order_vector = parseString(ext_ordering,',');
+    for(int i = 0; i < ext_order_vector.size()-1; i++) {
+      if(ext_order_vector[i] != "" && ext_order_vector[i+1] != "") {
+        string l = ext_order_vector[i];
+        string f = ext_order_vector[i+1];
+        m_follower_to_leader_mapping[f] = l;
+      } else {
+        
+        dbg_print("Faulty ordering\n");
+        break;
+
       }
     }
-
-    if (m_place_in_convoy + 1 <= m_leader_to_follower_mapping.size())
-    {
-      m_follower = m_leader_to_follower_mapping[m_us_name];
-
-      // fprintf(file,"%s - #%d followed by: %s\n", m_us_name.c_str(), m_place_in_convoy, m_follower.c_str());
-      // if(m_follower == "") {
-      //   fprintf(file,"tail agent\n");
-      // }
-    }
-
-    if (tail == m_us_name)
-    {
-      m_is_tail = true;
-      fprintf(file,"is tail\n");
-    }
-
-    else if (!m_is_leader && !m_is_tail)
-    {
-      m_is_midship = true;
-      fprintf(file,"is midship\n");
-    }
-
-    fprintf(file, "ordering: %s\n", ordering_str.c_str());
-    
-    postMessage("ORDERING", ordering_str);
+    dbg_print("Corrected ordering\n");
   }
+}
 
-  //TODO:   Add a handleUpdateVar function
-  bool has_updates_var = false;
-  string updates_msg;
-  has_updates_var = getBufferVarUpdated(m_updates_var_k);
-  if (has_updates_var)
+//---------------------------------------------------------------
+// Procedure: postStateMessages()
+//   Purpose: Invoked when idle and when running publish generally maintained state variables
+
+void BHV_ConvoyPD::postStateMessages()
+{
+  postAgentInfo();
+  generalBroadcasts();
+}
+
+void BHV_ConvoyPD::postAgentInfo()
+{
+
+  dbg_print("posting agent info\n");
+  NodeMessage node_message;
+  NodeRecord nr;
+
+  node_message.setSourceNode(m_us_name);
+  node_message.setDestNode("all");
+  node_message.setVarName(string("AGENT_INFO_") + toupper(m_us_name));
+
+  node_message.setStringVal(m_self_agent_info.repr());
+  postRepeatableMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
+}
+
+void BHV_ConvoyPD::updateAgentInfo(std::string name)
+{
+  string msg = getBufferStringVal("AGENT_INFO_" + toupper(name));
+
+  m_contacts_lookup[name] = AgentInfo(msg);
+  auto it = m_contacts_lookup.begin();
+  dbg_print("Ownship: %s\n", m_us_name.c_str());
+  for (; it != m_contacts_lookup.end(); ++it)
   {
-    updates_msg = getBufferStringVal(m_updates_var_k);
+    dbg_print("%s -> %s\n", it->first.c_str(), it->second.repr().c_str());
   }
+  dbg_print("\n");
 
-  if (updates_msg != m_updates_buffer)
+  if(m_contacts_lookup.count(m_contact)) {
+    AgentInfo cn = m_contacts_lookup[m_contact];
+    m_target.set_vx(cn.x);
+    m_target.set_vy(cn.y);
+  }
+}
+
+//---------------------------------------------------------------
+// Procedure: updateMessages()
+//   Purpose: Invoked when idle and when running to keep variables up to date
+
+void BHV_ConvoyPD::updateMessages()
+{
+  // file = fopen(fname.c_str(), "a");
+
+  updateOwnshipState();
+
+  if (getBufferVarUpdated(m_leader_k))
+    updateIsLeader();
+
+  if (getBufferVarUpdated(m_contact_list_k))
+    updateContactList();
+
+  if (getBufferVarUpdated(m_task_state_k))
+    updateCheckForContact();
+
+  if (getBufferVarUpdated(m_lead_point_k))
+    updateLeadPoint();
+
+  if (getBufferVarUpdated(m_nrl_k))
+    handleNodeReport();
+
+  if (getBufferVarUpdated(m_whotowho_k))
+    updateFtoLMapping();
+  if (getBufferVarUpdated(m_ext_ordering_k))
+    updateExtOrdering();
+
+  if (getBufferVarUpdated(m_updates_var_k))
+    handleUpdateVar();
+  for (int i = 0; i < m_contact_list.size(); i++)
   {
-
-    m_updates_buffer = updates_msg;
-    // UPDATES_VAR=gains='kp1,kd1,ki1',gains2='kp2,kd2,ki2',
-    vector<string> updates = parseQuotedString(updates_msg, ',');
-
-    vector<string>::iterator it = updates.begin();
-
-    for (; it != updates.end(); ++it)
+    dbg_print("Contact %d: %s\n", i, m_contact_list[i].c_str());
+    if (getBufferVarUpdated("AGENT_INFO_" + toupper(m_contact_list[i])))
     {
-      // a segment may equal gains='kp1,kd1,ki1'
-      string segment = *it;
-      // gains
-      string param = biteString(segment, '=');
-      //'kp1,kd1,ki1';
-      string value;
-      if (param == m_des_spd_k)
-      {
-        value = biteString(segment, '=');
-        m_desired_speed = stod(value);
-      }
-      else if (param == m_point_update_dist_k)
-      {
-        value = biteString(segment, '=');
-        m_point_update_distance = stod(value);
-      }
+      updateAgentInfo(m_contact_list[i]);
     }
   }
-  fclose(file);
 }
 
 //---------------------------------------------------------------
@@ -612,85 +841,99 @@ IvPFunction *BHV_ConvoyPD::onRunState()
 {
   // Part 1: Build the IvP function
   updateMessages();
-  IvPFunction *ipf = 0;
+  postStateMessages();
 
-  // Identify if we are a leader, a mid-follower, or the tail follower
-
-  // If we are the leader, for this controller, we don't do anything special
-  // We do send points to the person following us
-  // TODO: An agent is responsible for telling the agent their following who they are
-  // If we are the leader, for this controller, we are only passive, without affecting the behavior function
-
-  // If we are a mid-follower, we use a PD controller for maintaining our desired speed
-  // TODO: We head to the point next in our queue
-
-  // Coupled ZAIC Function for heading and speed
-  // TODO: The speed is centered around the nominal speed, and the error from our ideal follow range
-  //   is scaled by a gain to determine our current cruising speed
-  std::string fname = "garb_" + m_us_name + ".txt";
-  FILE *file;
-  file = fopen(fname.c_str(), "a");
-  fprintf(file,"On runs state: %s\n", m_us_name.c_str());
+  IvPFunction *ivp_function;
   if (m_is_leader)
   {
-    if ((abs(m_osx - m_osx_prv) > m_eps) &&
-        (abs(m_osy - m_osy_prv) > m_eps))
+    seedPoints();
+    ZAIC_PEAK spd_zaic(m_domain, "speed");
+    spd_zaic.setSummit(m_desired_speed);
+    spd_zaic.setPeakWidth(0.25);
+    spd_zaic.setBaseWidth(0.5);
+    spd_zaic.setSummitDelta(0.5);
+
+    if (spd_zaic.stateOK() == false)
     {
-      double dx = m_osx - m_osx_prv;
-      double dy = m_osy - m_osy_prv;
-      double dh = m_osh - m_osh_prv;
-
-      m_osx_prv = m_osx;
-      m_osy_prv = m_osy;
-      m_osh_prv = m_osh;
-      m_interval_odo += sqrt(dy * dy + dx * dx);
+      string warnings = "Speed ZAIC problems " + spd_zaic.getWarnings();
+      postWMessage(warnings);
+      return (0);
     }
-    if (m_interval_odo >= m_point_update_distance)
-    {
 
-      XYPoint cp(m_osx, m_osy);
-      // cp.set_duration(20);
-      cp.set_vertex_color("red");
-      cp.set_vertex_size(10);
-      cp.set_active(true);
-      cp.set_label(to_string(m_posted_points));
-      cp.set_label_color("invisible");
-      cp.set_id(to_string(m_posted_points));
-      // postRepeatableMessage("VIEW_POINT", cp.get_spec());
-      // m_previous_points.push_back(cp);
-      ConvoyPoint cpp(cp);
-
-      cpp.set_st(getBufferCurrTime());
-      cpp.set_lh(m_osh);
-      cpp.set_lhr(m_osh_dot);
-
-      // m_cpq.add_point(cpp);
-      ConvoyPoint cp_alt(cpp.repr()); // temporary
-
-      m_interval_odo = 0;
-      double dist_between = m_cpq.get_dist_to_target();
-
-      NodeMessage node_message;
-      node_message.setSourceNode(m_us_name);
-      node_message.setDestNode(m_follower);
-      node_message.setVarName(m_lead_point_k);
-      node_message.setStringVal(cpp.repr());
-      postMessage("NODE_MESSAGE_LOCAL", node_message.getSpec());
-      if (m_cpq.m_points.size() > 20)
-      {
-        fprintf(file, "distance: %0.2f\n", dist_between);
-        // ConvoyPoint prv_cp = m_cpq.dequeue();
-        // XYPoint prv_point = prv_cp.p;
-        // prv_point.set_active(false);
-        // postRepeatableMessage("VIEW_POINT", prv_point.get_spec());
-      }
-      m_posted_points++;
-    }
+    ivp_function = spd_zaic.extractIvPFunction();
   }
   else
   {
-
     // do general follower stuff here
+    updateCapturePoint();
+
+    ZAIC_PEAK spd_zaic(m_domain, "speed");
+
+    
+    double dist_to_target = m_cpq.get_dist_to_target();
+
+
+    //If our distance to the target is greater than our ideal follow range, we'll speed up, otherwise we'll slow down
+    //If our current speed is less than the leaders speed at this point, we'll speed up, otherwise we'll slow down
+    double leader_speed = m_cpq.m_points.front().leader_speed;
+    double dist_err = dist_to_target - m_ideal_follow_range;
+    double speed_err = leader_speed - m_speed;
+    double set_spd = m_desired_speed + kp_spd*(dist_err) + kd_spd*(speed_err);
+    clamp(set_spd,0,2);
+    dbg_print("desired speed: %0.2f vs. set speed: %0.2f\n", m_desired_speed, set_spd);
+    dbg_print("dist: %0.2f vs. ifr: %0.2f\n", dist_to_target, m_ideal_follow_range);
+    dbg_print("ls: %0.2f vs. mspd: %0.2f\n", leader_speed, m_speed);
+    
+    m_prev_err_point.set_active(false);
+    postMessage("VIEW_POINT",m_prev_err_point.get_spec());
+    XYPoint diff_msg(m_osx+4,m_osy+4);
+    diff_msg.set_label("dist_err="+floatToString(dist_err));
+    diff_msg.set_vertex_color("invisible");
+    postMessage("VIEW_POINT",diff_msg.get_spec());
+    m_prev_err_point = diff_msg;
+    
+
+    spd_zaic.setSummit(set_spd);
+    spd_zaic.setPeakWidth(0.5);
+    spd_zaic.setBaseWidth(1.0);
+    spd_zaic.setSummitDelta(0.8);
+
+    if (spd_zaic.stateOK() == false)
+    {
+      string warnings = "Speed ZAIC problems " + spd_zaic.getWarnings();
+      postWMessage(warnings);
+      return (0);
+    }
+
+    XYPoint np;
+    if (m_cpq.m_points.size() > 0)
+    {
+      np = m_cpq.m_points.front().p;
+    }
+    else
+    {
+      np = *(m_cpq.m_target);
+    }
+
+    double rel_ang_to_wpt = relAng(m_osx, m_osy, np.get_vx(), np.get_vy());
+    ZAIC_PEAK crs_zaic(m_domain, "course");
+    crs_zaic.setSummit(rel_ang_to_wpt);
+    crs_zaic.setPeakWidth(0);
+    crs_zaic.setBaseWidth(180.0);
+    crs_zaic.setSummitDelta(0);
+    crs_zaic.setValueWrap(true);
+    if (crs_zaic.stateOK() == false)
+    {
+      string warnings = "Course ZAIC problems " + crs_zaic.getWarnings();
+      postWMessage(warnings);
+      return (0);
+    }
+
+    IvPFunction *spd_ipf = spd_zaic.extractIvPFunction();
+    IvPFunction *crs_ipf = crs_zaic.extractIvPFunction();
+
+    OF_Coupler coupler;
+    ivp_function = coupler.couple(crs_ipf, spd_ipf, 50, 50);
 
     if (m_is_midship)
     {
@@ -699,58 +942,7 @@ IvPFunction *BHV_ConvoyPD::onRunState()
     {
     }
   }
-  
 
-  ZAIC_PEAK spd_zaic(m_domain, "speed");
-  double m_desired_speed = 1.5; // TODO: Change this to a parameter
-  spd_zaic.setSummit(m_desired_speed);
-  spd_zaic.setPeakWidth(0.5);
-  spd_zaic.setBaseWidth(1.0);
-  spd_zaic.setSummitDelta(0.8);
-  if (spd_zaic.stateOK() == false)
-  {
-    string warnings = "Speed ZAIC problems " + spd_zaic.getWarnings();
-    postWMessage(warnings);
-    return (0);
-  }
-
-  XYPoint np;
-  if (m_cpq.m_points.size() > 0)
-  {
-    np = m_cpq.m_points.front().p;
-  }
-  else
-  {
-    np = XYPoint(m_osx, m_osy);
-  }
-
-  double rel_ang_to_wpt = relAng(m_osx, m_osy, np.get_vx(), np.get_vy());
-  ZAIC_PEAK crs_zaic(m_domain, "course");
-  crs_zaic.setSummit(rel_ang_to_wpt);
-  crs_zaic.setPeakWidth(0);
-  crs_zaic.setBaseWidth(180.0);
-  crs_zaic.setSummitDelta(0);
-  crs_zaic.setValueWrap(true);
-  if (crs_zaic.stateOK() == false)
-  {
-    string warnings = "Course ZAIC problems " + crs_zaic.getWarnings();
-    postWMessage(warnings);
-    return (0);
-  }
-
-  IvPFunction *spd_ipf = spd_zaic.extractIvPFunction();
-  IvPFunction *crs_ipf = crs_zaic.extractIvPFunction();
-
-  OF_Coupler coupler;
-  IvPFunction *ivp_function = coupler.couple(crs_ipf, spd_ipf, 50, 50);
-
-  // The ZAIC speed function will have a desired nominal speed, shifted by some error. It will be a sharp peak.
-
-  // The ZAIC heading function will provide the desired heading to the next waypoint in the datastructure
-
-  // Part N: Prior to returning the IvP function, apply the priority wt
-  // Actual weight applied may be some value different than the configured
-  // m_priority_wt, depending on the behavior author's insite.
   if (m_cpq.m_points.size() && !m_is_leader)
   {
     if (ivp_function)
@@ -761,6 +953,5 @@ IvPFunction *BHV_ConvoyPD::onRunState()
     if (ivp_function)
       ivp_function->setPWT(0);
   }
-  fclose(file);
   return (ivp_function);
 }

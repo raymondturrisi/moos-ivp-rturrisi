@@ -3,7 +3,7 @@ Behavior = BHV_AvdColregsV22
 {
   name         = avdcol_
   //pwt          = 200
-  pwt          = 0
+  pwt          = 200
   condition    = AVOID = true
   condition    = MODE==ACTIVE
   condition    = MODE!=ACTIVE:STATION-KEEPING

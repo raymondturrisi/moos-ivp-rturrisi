@@ -20,6 +20,12 @@ class ConvoyPoint {
     seed_time = t;
     add_meta("seed_time",to_string(t));
   }
+  
+  void set_spd(double spd) {
+    leader_speed = spd;
+    add_meta("leader_speed",to_string(spd));
+  }
+
   void set_lh(double h) {
     leader_heading = h;
     add_meta("leader_heading",to_string(h));
@@ -144,16 +150,24 @@ class ConvoyPointQueue {
       m_ownship = nullptr;
       m_target = nullptr;
     }
+
+    ConvoyPointQueue(XYPoint &ownship) {
+      m_ownship = &ownship;
+    }
+
     ConvoyPointQueue(XYPoint &ownship, XYPoint &target) {
       m_ownship = &ownship;
       m_target = &target;
     }
+
     void link_ownship(XYPoint &ownship) {
       m_ownship = &ownship;
     }
+
     void link_target(XYPoint &target) {
       m_target = &target;
     }
+
     void link_ends(XYPoint &ownship, XYPoint &target) {
       link_ownship(ownship);
       link_target(target);

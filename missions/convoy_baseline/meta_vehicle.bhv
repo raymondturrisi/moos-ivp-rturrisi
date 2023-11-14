@@ -19,10 +19,10 @@ set MODE = STATIONING {
   STATION = true
 }
 
-set MODE = TRANSITING {
-  MODE = ACTIVE
-  LEADER = true
-}
+//set MODE = TRANSITING {
+//  MODE = ACTIVE
+//  LEADER = true
+//}
 
 set MODE = RETURNING {
   MODE = ACTIVE
@@ -39,13 +39,8 @@ set MODE = CONVOYING {
   CONVOY = true
 } 
 
-set MODE = LOITERING {
-  MODE = ACTIVE
-  LOITER = true
-} 
-
 //----------------------------------------------
-Behavior = BHV_TaskWaypoint
+Behavior = BHV_TaskWaypoint3
 { 
        name = circuit_leader
     updates = TASK_WPT
@@ -54,21 +49,24 @@ Behavior = BHV_TaskWaypoint
 
          type = waypoint
  max_bid_wins = false
-	
+ 
+	// Typically set/overridden upon spawning event
+	waypt   = $(LEADIN_POS)
+  turn_radius = 5
+
   bidwonflag = TRANSIT = true
   bidwonflag = STATION = false
   bidwonflag = RETURN  = false
-  bidwonflag = CONVOY  = false
+  bidwonflag = CONVOY  = true
   bidwonflag = LEADER  = true
   bidwonflag = TASK_WPT  = waypt=$(LEADIN_POS)
 	xbidwonflag = MISSION_TASK = type=convoy,id=follow_$[OWNSHIP],contact=$[OWNSHIP],exempt=$[OWNSHIP],task_time=$[UTC]
 	
-	// Typically set/overridden upon spawning event
-	waypt   = $(LEADIN_POS)
+	
 }
 
 //----------------------------------------------
-Behavior = BHV_TaskConvoy
+Behavior = BHV_TaskConvoy3
 { 
        name = tconvoy_
     updates = TASK_CONVOY
@@ -79,6 +77,7 @@ Behavior = BHV_TaskConvoy
 
    team_range = 5000
 	team_by_group = true
+  turn_radius = 5
 	
   bidwonflag = CONVOY  = true
   bidwonflag = TRANSIT = false
@@ -89,14 +88,21 @@ Behavior = BHV_TaskConvoy
 
 }
 
+
 //----------------------------------------------
-Behavior = BHV_ConvoyV21X
+Behavior = BHV_ConvoyV21Z
 {
-  name      = convoy
-  pwt       = 100
+  name      = oldconvoy
+  pwt       = 200
   updates   = UP_CONVOY
-  condition = MODE==CONVOYING
+  //condition = MODE==CONVOYING
+  condition = DEPLOY==true
+  condition = CONVOY==true
+  condition = NEVER==true
+  
+  
 	contact   = unset_ok
+  is_leader = false
 
               patience = 65
 	        aft_patience = true
@@ -124,7 +130,29 @@ Behavior = BHV_ConvoyV21X
 	visual_hints = marker_size=3
 }
 
+//----------------------------------------------
+Behavior = BHV_ConvoyPD
+{
+  name      = convoypd
+  pwt       = 200
+  condition = DEPLOY==true
+  condition = CONVOY==true
+  
+  type      = convoy
+  is_leader = false
+  desired_speed = 1.2
+ point_update_distance = 0.5
+ ideal_follow_range = 20
 
+  kp_spd = 0.1
+  kd_spd = 0.1
+  ki_spd = 0
+
+  kp_hdg = 1
+  kd_hdg = 1
+  ki_hdg = 0
+
+}
 
 Behavior = BHV_Waypoint
  {
@@ -132,6 +160,7 @@ Behavior = BHV_Waypoint
    // ---------------------------
    name         = circuit               // example
    pwt          = 100                   // default
+   condition    = MODE==ACTIVE
    condition    = DEPLOY==true
    condition    = LEADER==true      // example
    updates      = TRANSIT_UPDATES       // example
@@ -160,8 +189,6 @@ Behavior = BHV_Waypoint
         visual_hints = nextpt_vertex_size = 5       // default
  }
 
-
-
 //----------------------------------------------
 Behavior = BHV_MusterX
 { 
@@ -185,10 +212,6 @@ Behavior = BHV_MusterX
     activate_radius = 5          
               speed = $(TRANSIT_SPD)         
    stale_nav_thresh = 5
-
-     //capture_flag = SAY_MOOS="$[OWNSHIP] has arrived"
-	     capture_flag = SAY_MOOS=file=sounds/drip01.wav
-
 	
   muster_region_label = one
 	
@@ -212,52 +235,6 @@ Behavior = BHV_MusterX
    visual_hints = setpt_size   = 5
    visual_hints = setpt_color  = dodger_blue 
    visual_hints = setpt_label_color = off 
-}
-
-
-//----------------------------------------------
-Behavior = BHV_Loiter
-{ 
-  name      = loiter
-  pwt       = 100
-  condition = MODE==LOITERING
-  UPDATES   = LOITER_UPDATE
-  perpetual = true
-
-  endflag   = LOITER=false
-  endflag   = RETURN=true
-  //slingshot = 235
-  //slingshot = 595
-
-  //activeflag = ENCIRCLE_POSITION=x=30,y=-90,radius=30
-  activeflag = ENCIRCLE_POSITION=x=32,y=-97,radius=30
-
-  // Parameters specific to this behavior
-  // ------------------------------------
-     acquire_dist = 3               
-   capture_radius = 10 
-	center_activate = false            
-//        clockwise = $(CLOCKWISE)
-        clockwise = true
-      slip_radius = 15               
-            speed = 1
-        speed_alt = 1.2
-    spiral_factor = 99  
-       ipf_type = zaic_spd
-	
-          patience = 95
-//          polygon = radial:: x=30,y=-90,radius=25,pts=16  // example
-          polygon = radial:: x=32,y=-97,radius=30,pts=16  // example
-
-     visual_hints = vertex_size  = 1             // default
-     visual_hints = edge_size    = 1             // default
-     visual_hints = vertex_color = dodger_blue   // default
-     visual_hints = edge_color   = white         // default
-     visual_hints = nextpt_color = off        // default
-     visual_hints = nextpt_lcolor = off
-     visual_hints = nextpt_vertex_size = 5       // default
-     visual_hints = label        = zone3         // example
-     visual_hints = label_color  = off 
 }
 	
 //----------------------------------------------
@@ -283,12 +260,11 @@ Behavior = BHV_TaskMuster
   bidwonflag = CONVOY  = false
 
 	bidwonflag = LAST_TASK=$[LAST_TASK]
-	//	xbidwonflag = MISSION_TASK = type=convoy,id=convoy$[ID+1],contact=$[OWNSHIP],exempt=$[OWNSHIP]
 	xbidwonflag = MISSION_TASK = type=convoy,id=follow_$[OWNSHIP],contact=$[OWNSHIP],exempt=$[OWNSHIP]
 }
 
 
-#include bhvs/std_bhvs/plug_stationkeep.bhv
-#include bhvs/std_bhvs/plug_opregion.bhv
-#include bhvs/std_bhvs/plug_returnhome.bhv
-#include bhvs/std_bhvs/plug_colregs.bhv
+#include plugs/bhvs/std_bhvs/plug_stationkeep.bhv
+#include plugs/bhvs/std_bhvs/plug_opregion.bhv
+#include plugs/bhvs/std_bhvs/plug_returnhome.bhv
+#include plugs/bhvs/std_bhvs/plug_colregs.bhv
